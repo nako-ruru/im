@@ -2,3 +2,5 @@
 /temp
 /connector/target
 /connector/connector.iml
+/message/message.iml
+/message/target

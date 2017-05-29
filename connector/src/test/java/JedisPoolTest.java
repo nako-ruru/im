@@ -12,9 +12,7 @@ public class JedisPoolTest {
 
     @Test
     public void test7shardSimplePool() {
-        List<JedisShardInfo> shards = PublicJedisPoolUtils.read();
-
-        ShardedJedisPool pool = new ShardedJedisPool(new JedisPoolConfig(), shards);
+        ShardedJedisPool pool = PublicJedisPoolUtils.pool();
 
         ShardedJedis one = pool.getResource();
         ShardedJedisPipeline pipelined1 = one.pipelined();

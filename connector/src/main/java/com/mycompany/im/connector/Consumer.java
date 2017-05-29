@@ -23,8 +23,7 @@ class Consumer implements Runnable {
 
     @Override
     public void run() {
-        List<JedisShardInfo> shards = JedisPoolUtils.read();
-        ShardedJedisPool pool = new ShardedJedisPool(new JedisPoolConfig(), shards);
+        ShardedJedisPool pool = JedisPoolUtils.pool();
 
         while(true) {
             try {

@@ -1,4 +1,4 @@
-package com.mycompany.im.connector;
+package com.mycompany.im.message.adapter.persistence.redis;
 
 import redis.clients.jedis.ShardedJedisPool;
 

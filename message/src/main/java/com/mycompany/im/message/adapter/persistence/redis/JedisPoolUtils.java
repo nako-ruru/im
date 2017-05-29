@@ -1,4 +1,4 @@
-package com.mycompany.im.connector;
+package com.mycompany.im.message.adapter.persistence.redis;
 
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisShardInfo;
@@ -49,5 +49,5 @@ class JedisPoolUtils {
         }
 
     }
-
+    
 }
