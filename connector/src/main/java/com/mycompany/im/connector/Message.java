@@ -5,10 +5,11 @@ package com.mycompany.im.connector;
  */
 class Message {
 
-    public final String userId, content;
+    public final String roomId, userId, content;
     public final long time;
 
-    public Message(String userId, String content) {
+    public Message(String roomId, String userId, String content) {
+        this.roomId = roomId;
         this.userId = userId;
         this.content = content;
         time = System.currentTimeMillis();

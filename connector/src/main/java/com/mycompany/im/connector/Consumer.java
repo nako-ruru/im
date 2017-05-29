@@ -15,7 +15,7 @@ class Consumer implements Runnable {
 
     private static final int MAX_ELEMENTS = 100000;
 
-    private BlockingQueue<Message> messages;
+    private final BlockingQueue<Message> messages;
 
     public Consumer(BlockingQueue<Message> messages) {
         this.messages = messages;
@@ -34,8 +34,8 @@ class Consumer implements Runnable {
                 messages.drainTo(ready, MAX_ELEMENTS - 1);
                 try (ShardedJedis jedis = pool.getResource()) {
                     ShardedJedisPipeline pipelined = jedis.pipelined();
-                    for(Message message : messages) {
-                        pipelined.rpushx(message.userId, json(message));
+                    for(Message message : ready) {
+                        pipelined.rpush(message.roomId, json(message));
                     }
                     pipelined.sync();
                 }
@@ -46,7 +46,7 @@ class Consumer implements Runnable {
 
     }
 
-    private String json(Message c) {
+    private static String json(Message c) {
         return new Gson().toJson(c);
     }
 

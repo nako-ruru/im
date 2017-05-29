@@ -14,7 +14,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class Server {
 
-    private int port;
+    private final int port;
 
     public Server(int port) {
         this.port = port;
@@ -36,7 +36,7 @@ public class Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new SimpleHandler(queue));
+                            ch.pipeline().addLast(new MyDecoder(), new SimpleHandler(queue));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

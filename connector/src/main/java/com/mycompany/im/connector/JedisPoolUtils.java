@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -22,7 +21,6 @@ import java.util.stream.Stream;
  * @author Administrator
  */
 class JedisPoolUtils {
-
 
     static List<JedisShardInfo> read() {
         Properties properties = new Properties();
