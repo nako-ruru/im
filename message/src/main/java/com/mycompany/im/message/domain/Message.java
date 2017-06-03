@@ -9,6 +9,7 @@ public class Message {
 
     private String roomId, userId, content;
     private long time;
+    private int type, level;
 
     public String getRoomId() {
         return roomId;
@@ -32,6 +33,22 @@ public class Message {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
     }
 
     public long getTime() {

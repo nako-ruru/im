@@ -72,8 +72,15 @@ public class MyDecoder extends ByteToMessageDecoder { // (1)
                         }
                         in.readBytes(buffer, 0, contentLength);
                         CharSequence content = new String(buffer, 0, contentLength, StandardCharsets.UTF_8);
-                        in.markReaderIndex();
-                        out.add(new Message(roomId.toString(), userId, content.toString()));
+                        if(in.readableBytes() >= headerLength + headerLength) {
+                            int type = in.readInt();
+                            int level = in.readInt();
+                            in.markReaderIndex();
+                            out.add(new Message(roomId.toString(), userId, content.toString(), type, level));
+                        } else {
+                            in.resetReaderIndex();
+                            break;
+                        }
                     } else {
                         in.resetReaderIndex();
                         break;

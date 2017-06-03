@@ -43,7 +43,7 @@ public class ClientTest {
                 "欢迎来到小美直播间，喜欢小美的朋友们点点关注"
         };
 
-        private static final String[] ROOM_IDS = new String[5];
+        private static final String[] ROOM_IDS = new String[3];
         static {
             for(int i = 0; i < ROOM_IDS.length; i++) {
                 ROOM_IDS[i] = UUID.randomUUID().toString();
@@ -59,7 +59,9 @@ public class ClientTest {
         public void start() {
             Socket socket;
             try {
-                socket = new Socket("localhost", 8080);
+                //String host = "localhost";
+                String host = "47.92.98.23";
+                socket = new Socket(host, 6060);
 
                 ThreadLocalRandom random = ThreadLocalRandom.current();
 
@@ -69,6 +71,8 @@ public class ClientTest {
                 while(true) {
                     writeCharSequence(out, ROOM_IDS[random.nextInt(ROOM_IDS.length)]);
                     writeCharSequence(out, WORDS[random.nextInt(WORDS.length)]);
+                    out.writeInt(0);
+                    out.writeInt(random.nextInt(1, 100));
                     Thread.sleep(random.nextLong(3000L));
                 }
             } catch (IOException | InterruptedException e) {

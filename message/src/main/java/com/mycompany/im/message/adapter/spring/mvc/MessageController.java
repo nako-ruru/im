@@ -8,21 +8,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.annotation.Resource;
-import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Created by Administrator on 2017/5/13.
  */
-@Controller
+@RestController
 public class MessageController {
 
     @Resource
     private MessageRepository messageRepository;
     
-    @RequestMapping(value = "", method = RequestMethod.GET)
+    @RequestMapping(value = "a", method = RequestMethod.GET)
     public List<MessageResult> topic(MessageParameter parameter) {
         List<Message> messages = messageRepository.findByRoomIdAndGreaterThan(parameter.getRoomId(), parameter.getFrom());
         return messages.stream()
@@ -35,6 +35,8 @@ public class MessageController {
                 message.getRoomId(),
                 message.getUserId(),
                 message.getContent(),
+                message.getType(),
+                message.getLevel(),
                 message.getTime()
         );
     }
