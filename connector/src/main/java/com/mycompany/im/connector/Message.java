@@ -1,18 +1,21 @@
 package com.mycompany.im.connector;
 
+import java.util.Map;
+
 /**
  * Created by Administrator on 2017/5/28.
  */
 class Message {
 
-    public final String roomId, userId, content;
+    public final String roomId, userId;
     public final long time;
     public final int level, type;
+    public final Map<String, Object> params;
 
-    public Message(String roomId, String userId, String content, int type, int level) {
+    public Message(String roomId, String userId, int type, Map<String, Object> params, int level) {
         this.roomId = roomId;
         this.userId = userId;
-        this.content = content;
+        this.params = params;
         this.type = type;
         this.level = level;
         time = System.currentTimeMillis();

@@ -15,7 +15,7 @@ public class ClientTest {
 
     @Test
     public void testA() throws InterruptedException {
-        int clientCount = 3;
+        int clientCount = 2;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;
@@ -59,8 +59,8 @@ public class ClientTest {
         public void start() {
             Socket socket;
             try {
-                //String host = "localhost";
-                String host = "47.92.98.23";
+                String host = "localhost";
+                //String host = "47.92.98.23";
                 socket = new Socket(host, 6060);
 
                 ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -70,9 +70,8 @@ public class ClientTest {
 
                 while(true) {
                     writeCharSequence(out, ROOM_IDS[random.nextInt(ROOM_IDS.length)]);
-                    writeCharSequence(out, WORDS[random.nextInt(WORDS.length)]);
-                    out.writeInt(0);
                     out.writeInt(random.nextInt(1, 100));
+                    writeRandomType(out);
                     Thread.sleep(random.nextLong(3000L));
                 }
             } catch (IOException | InterruptedException e) {
@@ -84,6 +83,23 @@ public class ClientTest {
             byte[] bytes = chars.getBytes(StandardCharsets.UTF_8);
             out.writeInt(bytes.length);
             out.write(bytes);
+        }
+
+        private static void writeRandomType(DataOutput out) throws IOException {
+            ThreadLocalRandom random = ThreadLocalRandom.current();
+            int[] availableTypes = {1, 2, 3, 5, 6};
+            int type = availableTypes[random.nextInt(availableTypes.length)];
+            out.writeInt(type);
+            switch (type) {
+                case 1:
+                    writeCharSequence(out, WORDS[random.nextInt(WORDS.length)]);
+                    break;
+                case 3:
+                    writeCharSequence(out, UUID.randomUUID().toString());
+                    break;
+                default:
+                    break;
+            }
         }
 
     }

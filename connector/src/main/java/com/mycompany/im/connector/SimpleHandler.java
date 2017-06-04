@@ -17,7 +17,7 @@ class SimpleHandler extends ChannelInboundHandlerAdapter {
 
     private final BlockingQueue<Message> messages;
 
-    public SimpleHandler(BlockingQueue<Message> messages) {
+    SimpleHandler(BlockingQueue<Message> messages) {
         this.messages = messages;
     }
 

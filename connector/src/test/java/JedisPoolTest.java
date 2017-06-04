@@ -2,9 +2,10 @@
 
 import com.mycompany.im.connector.PublicJedisPoolUtils;
 import org.junit.Test;
-import redis.clients.jedis.*;
+import redis.clients.jedis.ShardedJedis;
+import redis.clients.jedis.ShardedJedisPipeline;
+import redis.clients.jedis.ShardedJedisPool;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

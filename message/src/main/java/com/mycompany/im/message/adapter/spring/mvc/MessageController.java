@@ -34,8 +34,8 @@ public class MessageController {
         return new MessageResult(
                 message.getRoomId(),
                 message.getUserId(),
-                message.getContent(),
                 message.getType(),
+                message.getParams(),
                 message.getLevel(),
                 message.getTime()
         );

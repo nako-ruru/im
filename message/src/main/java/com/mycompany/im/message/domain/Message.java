@@ -2,14 +2,18 @@ package com.mycompany.im.message.domain;
 
 import com.google.gson.Gson;
 
+import java.util.Map;
+
 /**
  * Created by Administrator on 2017/5/28.
  */
 public class Message {
 
-    private String roomId, userId, content;
+    private String roomId;
+    private String userId;
     private long time;
     private int type, level;
+    private Map<String, Object> params;
 
     public String getRoomId() {
         return roomId;
@@ -27,20 +31,20 @@ public class Message {
         this.userId = userId;
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
     public int getType() {
         return type;
     }
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public Map<String, Object> getParams() {
+        return params;
+    }
+
+    public void setParams(Map<String, Object> params) {
+        this.params = params;
     }
 
     public int getLevel() {
