@@ -1,3 +1,4 @@
+import com.mycompany.im.connector.MessageUtils;
 import org.junit.Test;
 
 import java.io.DataOutput;
@@ -66,12 +67,13 @@ public class ClientTest {
                 ThreadLocalRandom random = ThreadLocalRandom.current();
 
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                writeCharSequence(out, userId);
+                MessageUtils.register(out, userId);
 
                 while(true) {
-                    writeCharSequence(out, ROOM_IDS[random.nextInt(ROOM_IDS.length)]);
-                    out.writeInt(random.nextInt(1, 100));
-                    writeRandomType(out);
+                    String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
+                    int level = random.nextInt(1, 100);
+                    writeRandomMessage(out, roomId, level);
+
                     Thread.sleep(random.nextLong(3000L));
                 }
             } catch (IOException | InterruptedException e) {
@@ -79,29 +81,32 @@ public class ClientTest {
             }
         }
 
-        private static void writeCharSequence(DataOutput out, String chars) throws IOException {
-            byte[] bytes = chars.getBytes(StandardCharsets.UTF_8);
-            out.writeInt(bytes.length);
-            out.write(bytes);
-        }
-
-        private static void writeRandomType(DataOutput out) throws IOException {
+        private static void writeRandomMessage(DataOutput out, String roomId, int level) throws IOException {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             int[] availableTypes = {1, 2, 3, 5, 6};
             int type = availableTypes[random.nextInt(availableTypes.length)];
-            out.writeInt(type);
             switch (type) {
                 case 1:
-                    writeCharSequence(out, WORDS[random.nextInt(WORDS.length)]);
+                    String content = WORDS[random.nextInt(WORDS.length)];
+                    MessageUtils.chat(out, roomId, content, level);
+                    break;
+                case 2:
+                    MessageUtils.support(out, roomId, level);
                     break;
                 case 3:
-                    writeCharSequence(out, UUID.randomUUID().toString());
+                    String giftId = UUID.randomUUID().toString();
+                    MessageUtils.sendGift(out, roomId, giftId, level);
+                    break;
+                case 5:
+                    MessageUtils.share(out, roomId, level);
+                    break;
+                case 6:
+                    MessageUtils.levelUp(out, roomId, level);
                     break;
                 default:
                     break;
             }
         }
-
     }
 
 }
