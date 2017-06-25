@@ -7,6 +7,6 @@ import java.util.List;
  */
 public interface MessageRepository {
 
-    List<Message> findByRoomIdAndGreaterThan(String roomId, long from);
+    List<Message> findByRoomIdAndGreaterThan(String roomId, Long from);
 
 }

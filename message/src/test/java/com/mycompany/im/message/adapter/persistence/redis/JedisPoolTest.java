@@ -19,7 +19,7 @@ public class JedisPoolTest {
 
     @Test
     public void test7shardSimplePool() {
-        List<Message> messages = messageRepository.findByRoomIdAndGreaterThan("21c88ff4-2ff0-421c-a310-cafca9379fc3", 0);
+        List<Message> messages = messageRepository.findByRoomIdAndGreaterThan("11", 0L);
         System.out.println(messages);
     }
 
