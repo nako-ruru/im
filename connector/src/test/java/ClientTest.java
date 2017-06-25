@@ -16,7 +16,7 @@ public class ClientTest {
 
     @Test
     public void testA() throws InterruptedException {
-        int clientCount = 2;
+        int clientCount = 3;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;
@@ -62,12 +62,13 @@ public class ClientTest {
             try {
                 String host = "localhost";
                 //String host = "47.92.98.23";
-                socket = new Socket(host, 6060);
+                socket = new Socket(host, 6000);
 
                 ThreadLocalRandom random = ThreadLocalRandom.current();
 
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 MessageUtils.register(out, userId);
+                out.flush();
 
                 while(true) {
                     String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
@@ -83,7 +84,7 @@ public class ClientTest {
 
         private static void writeRandomMessage(DataOutput out, String roomId, int level) throws IOException {
             ThreadLocalRandom random = ThreadLocalRandom.current();
-            int[] availableTypes = {1, 2, 3, 5, 6};
+            int[] availableTypes = {1, 2, 3, 4, 5, 6};
             int type = availableTypes[random.nextInt(availableTypes.length)];
             switch (type) {
                 case 1:
@@ -96,6 +97,9 @@ public class ClientTest {
                 case 3:
                     String giftId = UUID.randomUUID().toString();
                     MessageUtils.sendGift(out, roomId, giftId, level);
+                    break;
+                case 4:
+                    MessageUtils.enterRoom(out, roomId, level);
                     break;
                 case 5:
                     MessageUtils.share(out, roomId, level);

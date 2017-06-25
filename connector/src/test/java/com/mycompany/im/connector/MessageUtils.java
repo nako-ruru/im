@@ -1,11 +1,13 @@
 package com.mycompany.im.connector;
 
-import java.io.DataInputStream;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Created by Administrator on 2017/6/5.
@@ -18,11 +20,15 @@ public class MessageUtils {
      * @param userId
      * @throws IOException
      *
-     * @see Socket#getInputStream()
-     * @see DataInputStream#DataInputStream(InputStream)
+     * @see Socket#getOutputStream()
+     * @see java.io.DataOutputStream#DataOutputStream(java.io.OutputStream)
      */
     public static void register(DataOutput out, String userId) throws IOException {
-        writeCharSequence(out, userId);
+        Map<String, Object> params = ImmutableMap.of(
+                "UserId", userId,
+                "Pass", ""
+        );
+        writeMsg(out, params, 0);
     }
 
     /**
@@ -34,10 +40,12 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void chat(DataOutput out, String roomId, String content, int level) throws IOException {
-        writeCharSequence(out, roomId);
-        out.writeInt(level);
-        out.writeInt(1);
-        writeCharSequence(out, content);
+        Map<String, Object> params = ImmutableMap.of(
+                "roomId", roomId,
+                "content", content,
+                "level", level
+        );
+        writeMsg(out, params, 1);
     }
 
     /**
@@ -48,13 +56,15 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void support(DataOutput out, String roomId, int level) throws IOException {
-        writeCharSequence(out, roomId);
-        out.writeInt(level);
-        out.writeInt(2);
+        Map<String, Object> params = ImmutableMap.of(
+                "roomId", roomId,
+                "level", level
+        );
+        writeMsg(out, params, 2);
     }
 
     /**
-     * 发送礼物
+     * 送礼物
      * @param out
      * @param roomId
      * @param giftId
@@ -62,10 +72,27 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void sendGift(DataOutput out, String roomId, String giftId, int level) throws IOException {
-        writeCharSequence(out, roomId);
-        out.writeInt(level);
-        out.writeInt(3);
-        writeCharSequence(out, giftId);
+        Map<String, Object> params = ImmutableMap.of(
+                "roomId", roomId,
+                "level", level,
+                "giftId", giftId
+        );
+        writeMsg(out, params, 3);
+    }
+
+    /**
+     * 送礼物
+     * @param out
+     * @param roomId
+     * @param level
+     * @throws IOException
+     */
+    public static void enterRoom(DataOutput out, String roomId, int level) throws IOException {
+        Map<String, Object> params = ImmutableMap.of(
+                "roomId", roomId,
+                "level", level
+        );
+        writeMsg(out, params, 4);
     }
 
     /**
@@ -76,9 +103,11 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void share(DataOutput out, String roomId, int level) throws IOException {
-        writeCharSequence(out, roomId);
-        out.writeInt(level);
-        out.writeInt(5);
+        Map<String, Object> params = ImmutableMap.of(
+                "roomId", roomId,
+                "level", level
+        );
+        writeMsg(out, params, 5);
     }
 
     /**
@@ -89,14 +118,18 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void levelUp(DataOutput out, String roomId, int level) throws IOException {
-        writeCharSequence(out, roomId);
-        out.writeInt(level);
-        out.writeInt(6);
+        Map<String, Object> params = ImmutableMap.of(
+                "roomId", roomId,
+                "level", String.valueOf(level)
+        );
+        writeMsg(out, params, 6);
     }
 
-    private static void writeCharSequence(DataOutput out, String chars) throws IOException {
-        byte[] bytes = chars.getBytes(StandardCharsets.UTF_8);
-        out.writeInt(bytes.length);
+    private static void writeMsg(DataOutput out, Object o, int type) throws IOException {
+        String json = new Gson().toJson(o);
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        out.writeInt(4 + bytes.length);
+        out.writeInt(type);
         out.write(bytes);
     }
 
