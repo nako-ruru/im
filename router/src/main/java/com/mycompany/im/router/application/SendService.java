@@ -3,7 +3,6 @@ package com.mycompany.im.router.application;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.router.domain.Message;
-import com.mycompany.im.router.domain.UserConnection;
 import com.mycompany.im.router.domain.RoomRepository;
 import com.mycompany.im.util.JedisPoolUtils;
 import org.springframework.stereotype.Service;
@@ -12,10 +11,6 @@ import redis.clients.jedis.ShardedJedisPipeline;
 import redis.clients.jedis.ShardedJedisPool;
 
 import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by Administrator on 2017/6/26.

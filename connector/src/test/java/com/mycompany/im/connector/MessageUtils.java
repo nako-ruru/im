@@ -36,13 +36,14 @@ public class MessageUtils {
      * @param out
      * @param roomId
      * @param content
-     * @param level
-     * @throws IOException
+     * @param nickname
+     *@param level  @throws IOException
      */
-    public static void chat(DataOutput out, String roomId, String content, int level) throws IOException {
+    public static void chat(DataOutput out, String roomId, String content, String nickname, int level) throws IOException {
         Map<String, Object> params = ImmutableMap.of(
                 "roomId", roomId,
                 "content", content,
+                "nickname", nickname,
                 "level", level
         );
         writeMsg(out, params, 1);
@@ -55,9 +56,10 @@ public class MessageUtils {
      * @param level
      * @throws IOException
      */
-    public static void support(DataOutput out, String roomId, int level) throws IOException {
+    public static void support(DataOutput out, String roomId, String nickname, int level) throws IOException {
         Map<String, Object> params = ImmutableMap.of(
                 "roomId", roomId,
+                "nickname", nickname,
                 "level", level
         );
         writeMsg(out, params, 2);
@@ -71,9 +73,10 @@ public class MessageUtils {
      * @param level
      * @throws IOException
      */
-    public static void sendGift(DataOutput out, String roomId, String giftId, int level) throws IOException {
+    public static void sendGift(DataOutput out, String roomId, String giftId, String nickname, int level) throws IOException {
         Map<String, Object> params = ImmutableMap.of(
                 "roomId", roomId,
+                "nickname", nickname,
                 "level", level,
                 "giftId", giftId
         );
@@ -87,9 +90,10 @@ public class MessageUtils {
      * @param level
      * @throws IOException
      */
-    public static void enterRoom(DataOutput out, String roomId, int level) throws IOException {
+    public static void enterRoom(DataOutput out, String roomId, String nickname, int level) throws IOException {
         Map<String, Object> params = ImmutableMap.of(
                 "roomId", roomId,
+                "nickname", nickname,
                 "level", level
         );
         writeMsg(out, params, 4);
@@ -102,9 +106,10 @@ public class MessageUtils {
      * @param level
      * @throws IOException
      */
-    public static void share(DataOutput out, String roomId, int level) throws IOException {
+    public static void share(DataOutput out, String roomId, String nickname, int level) throws IOException {
         Map<String, Object> params = ImmutableMap.of(
                 "roomId", roomId,
+                "nickname", nickname,
                 "level", level
         );
         writeMsg(out, params, 5);
@@ -117,9 +122,10 @@ public class MessageUtils {
      * @param level
      * @throws IOException
      */
-    public static void levelUp(DataOutput out, String roomId, int level) throws IOException {
+    public static void levelUp(DataOutput out, String roomId, String nickname, int level) throws IOException {
         Map<String, Object> params = ImmutableMap.of(
                 "roomId", roomId,
+                "nickname", nickname,
                 "level", String.valueOf(level)
         );
         writeMsg(out, params, 6);

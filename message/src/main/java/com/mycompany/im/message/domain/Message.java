@@ -12,6 +12,7 @@ public class Message {
     private String roomId;
     private String userId;
     private long time;
+    private String nickname;
     private int type, level;
     private Map<String, Object> params;
 
@@ -37,6 +38,14 @@ public class Message {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public Map<String, Object> getParams() {

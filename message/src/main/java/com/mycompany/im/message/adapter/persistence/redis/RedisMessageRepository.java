@@ -9,8 +9,11 @@ import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by Administrator on 2017/5/29.
@@ -22,17 +25,23 @@ public class RedisMessageRepository implements MessageRepository {
     public List<Message> findByRoomIdAndGreaterThan(String roomId, Long from) {
         ShardedJedisPool pool = JedisPoolUtils.pool();
         try (ShardedJedis resource = pool.getResource()) {
-            List<String> values = resource.lrange(roomId, 0, -1);
+
+            List<String> roomMessageTextList = resource.lrange(roomId, 0, -1);
+            List<String> worldMessageTextList = resource.lrange("world", 0, -1);
+            List<Message> roomMessageList = convertAndFilter(from, roomMessageTextList);
+            List<Message> worldMessageText = convertAndFilter(from, worldMessageTextList);
+
+            List<Message> values = Stream.of(roomMessageList, worldMessageText)
+                    .flatMap(Collection::stream)
+                    .sorted(Comparator.comparingLong(Message::getTime))
+                    .collect(Collectors.toList());
+
             if(from == null || from.equals(0L)) {
                 //如果from为null，则只取最后10条
                 values = values.subList(Math.max(0, values.size() - 10), values.size());
             }
             if(!values.isEmpty()) {
-                Gson gson = new Gson();
-                return values.stream()
-                        .map(v -> gson.fromJson(v, Message.class))
-                        .filter(m -> from <= m.getTime())
-                        .collect(Collectors.toList());
+                return values;
             } else {
                 Message message = new Message();
                 message.setLevel(0);
@@ -44,6 +53,14 @@ public class RedisMessageRepository implements MessageRepository {
                 return Arrays.asList(message);
             }
         }
+    }
+
+    private List<Message> convertAndFilter(Long from, List<String> roomMessageTextList) {
+        Gson gson = new Gson();
+        return roomMessageTextList.stream()
+                .map(v -> gson.fromJson(v, Message.class))
+                .filter(m -> from <= m.getTime())
+                .collect(Collectors.toList());
     }
 
 }

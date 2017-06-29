@@ -5,7 +5,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -16,7 +15,7 @@ public class ClientTest {
 
     @Test
     public void testA() throws InterruptedException {
-        int clientCount = 3;
+        int clientCount = 1;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;
@@ -73,7 +72,8 @@ public class ClientTest {
                 while(true) {
                     String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
                     int level = random.nextInt(1, 100);
-                    writeRandomMessage(out, roomId, level);
+                    String nickname = UUID.randomUUID().toString();
+                    writeRandomMessage(out, roomId, nickname, level);
 
                     Thread.sleep(random.nextLong(3000L));
                 }
@@ -82,30 +82,30 @@ public class ClientTest {
             }
         }
 
-        private static void writeRandomMessage(DataOutput out, String roomId, int level) throws IOException {
+        private static void writeRandomMessage(DataOutput out, String roomId, String nickname, int level) throws IOException {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             int[] availableTypes = {1, 2, 3, 4, 5, 6};
             int type = availableTypes[random.nextInt(availableTypes.length)];
             switch (type) {
                 case 1:
                     String content = WORDS[random.nextInt(WORDS.length)];
-                    MessageUtils.chat(out, roomId, content, level);
+                    MessageUtils.chat(out, roomId, content, nickname, level);
                     break;
                 case 2:
-                    MessageUtils.support(out, roomId, level);
+                    MessageUtils.support(out, roomId, nickname, level);
                     break;
                 case 3:
                     String giftId = UUID.randomUUID().toString();
-                    MessageUtils.sendGift(out, roomId, giftId, level);
+                    MessageUtils.sendGift(out, roomId, giftId, nickname, level);
                     break;
                 case 4:
-                    MessageUtils.enterRoom(out, roomId, level);
+                    MessageUtils.enterRoom(out, roomId, nickname, level);
                     break;
                 case 5:
-                    MessageUtils.share(out, roomId, level);
+                    MessageUtils.share(out, roomId, nickname, level);
                     break;
                 case 6:
-                    MessageUtils.levelUp(out, roomId, level);
+                    MessageUtils.levelUp(out, roomId, nickname, level);
                     break;
                 default:
                     break;
