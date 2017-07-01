@@ -126,7 +126,7 @@ public class MessageUtils {
         Map<String, Object> params = ImmutableMap.of(
                 "roomId", roomId,
                 "nickname", nickname,
-                "level", String.valueOf(level)
+                "level", level
         );
         writeMsg(out, params, 6);
     }

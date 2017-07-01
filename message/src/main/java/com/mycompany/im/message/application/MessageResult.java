@@ -13,15 +13,17 @@ public class MessageResult {
     private final String userId;
     private final long time;
     private final int type, level;
+    private final String nickname;
     private final Map<String, Object> params;
 
-    public MessageResult(String roomId, String userId, int type, Map<String, Object> params, int level, long time) {
+    public MessageResult(String roomId, String userId, int type, Map<String, Object> params, String nickname, int level, long time) {
         this.roomId = roomId;
         this.userId = userId;
         this.params = params;
         this.time = time;
         this.type = type;
         this.level = level;
+        this.nickname = nickname;
     }
 
     public String getRoomId() {
@@ -46,6 +48,10 @@ public class MessageResult {
 
     public int getLevel() {
         return level;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     @Override

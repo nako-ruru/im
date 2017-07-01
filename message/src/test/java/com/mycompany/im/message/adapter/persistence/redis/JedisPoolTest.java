@@ -1,7 +1,8 @@
 package com.mycompany.im.message.adapter.persistence.redis;
 
-import com.mycompany.im.message.domain.Message;
-import com.mycompany.im.message.domain.MessageRepository;
+import com.mycompany.im.message.adapter.spring.mvc.MessageController;
+import com.mycompany.im.message.application.MessageParameter;
+import com.mycompany.im.message.application.MessageResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -15,11 +16,15 @@ import java.util.List;
 public class JedisPoolTest {
 
     @Resource
-    private MessageRepository messageRepository;
+    private MessageController messageRepository;
 
     @Test
     public void test7shardSimplePool() {
-        List<Message> messages = messageRepository.findByRoomIdAndGreaterThan("myroomId", 1L);
+        MessageParameter parameter = new MessageParameter() {{
+            setRoomId("12");
+            setFrom(1);
+        }};
+        List<MessageResult> messages = messageRepository.topic(parameter);
         System.out.println(messages);
     }
 

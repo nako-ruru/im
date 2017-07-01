@@ -22,9 +22,13 @@ import java.util.stream.Stream;
 public class RedisMessageRepository implements MessageRepository {
 
     @Override
-    public List<Message> findByRoomIdAndGreaterThan(String roomId, Long from) {
+    public List<Message> findByRoomIdAndGreaterThan(String roomId, long from) {
         ShardedJedisPool pool = JedisPoolUtils.pool();
         try (ShardedJedis resource = pool.getResource()) {
+
+            if(from == 0L) {
+                return newEmptyMessages(roomId);
+            }
 
             List<String> roomMessageTextList = resource.lrange(roomId, 0, -1);
             List<String> worldMessageTextList = resource.lrange("world", 0, -1);
@@ -36,23 +40,23 @@ public class RedisMessageRepository implements MessageRepository {
                     .sorted(Comparator.comparingLong(Message::getTime))
                     .collect(Collectors.toList());
 
-            if(from == null || from.equals(0L)) {
-                //如果from为null，则只取最后10条
-                values = values.subList(Math.max(0, values.size() - 10), values.size());
-            }
             if(!values.isEmpty()) {
                 return values;
             } else {
-                Message message = new Message();
-                message.setLevel(0);
-                message.setParams(ImmutableMap.of());
-                message.setRoomId(roomId);
-                message.setTime(System.currentTimeMillis());
-                message.setType(10001);
-                message.setUserId("");
-                return Arrays.asList(message);
+                return newEmptyMessages(roomId);
             }
         }
+    }
+
+    private static List<Message> newEmptyMessages(String roomId) {
+        Message message = new Message();
+        message.setLevel(0);
+        message.setParams(ImmutableMap.of());
+        message.setRoomId(roomId);
+        message.setTime(System.currentTimeMillis());
+        message.setType(10001);
+        message.setUserId("");
+        return Arrays.asList(message);
     }
 
     private List<Message> convertAndFilter(Long from, List<String> roomMessageTextList) {

@@ -43,7 +43,7 @@ public class ClientTest {
                 "欢迎来到小美直播间，喜欢小美的朋友们点点关注"
         };
 
-        private static final String[] ROOM_IDS = new String[3];
+        private static final String[] ROOM_IDS = new String[2];
         static {
             for(int i = 0; i < ROOM_IDS.length; i++) {
                 ROOM_IDS[i] = UUID.randomUUID().toString();

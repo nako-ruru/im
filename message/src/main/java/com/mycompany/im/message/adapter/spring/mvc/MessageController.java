@@ -36,6 +36,7 @@ public class MessageController {
                 message.getUserId(),
                 message.getType(),
                 message.getParams(),
+                message.getNickname(),
                 message.getLevel(),
                 message.getTime()
         );

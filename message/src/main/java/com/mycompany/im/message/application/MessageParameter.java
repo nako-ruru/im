@@ -12,7 +12,7 @@ package com.mycompany.im.message.application;
 public class MessageParameter {
     
     private String roomId;
-    private Long from;
+    private long from;
 
     public String getRoomId() {
         return roomId;
@@ -22,11 +22,11 @@ public class MessageParameter {
         this.roomId = roomId;
     }
 
-    public Long getFrom() {
+    public long getFrom() {
         return from;
     }
 
-    public void setFrom(Long from) {
+    public void setFrom(long from) {
         this.from = from;
     }
 
