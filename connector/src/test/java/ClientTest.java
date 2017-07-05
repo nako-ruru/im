@@ -1,9 +1,7 @@
 import com.mycompany.im.connector.MessageUtils;
 import org.junit.Test;
 
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -66,6 +64,14 @@ public class ClientTest {
                 ThreadLocalRandom random = ThreadLocalRandom.current();
 
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                DataInputStream in = new DataInputStream(socket.getInputStream());
+
+                MessageUtils.pushCallback(
+                        in,
+                        System.out::println,
+                        Exception::printStackTrace
+                );
+
                 MessageUtils.register(out, userId);
                 out.flush();
 

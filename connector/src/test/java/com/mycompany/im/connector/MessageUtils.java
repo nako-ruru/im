@@ -1,12 +1,13 @@
 package com.mycompany.im.connector;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 
+import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -24,11 +25,43 @@ public class MessageUtils {
      * @see java.io.DataOutputStream#DataOutputStream(java.io.OutputStream)
      */
     public static void register(DataOutput out, String userId) throws IOException {
-        Map<String, Object> params = ImmutableMap.of(
+        Map<String, Object> params = map(
                 "UserId", userId,
                 "Pass", ""
         );
         writeMsg(out, params, 0);
+    }
+
+    /**
+     * 为{@link java.net.Socket}连接的{@link DataInputStream}注册推送消息回调
+     * @param in
+     * @param consumer
+     * @param eConsumer
+     */
+    public static void pushCallback(DataInputStream in, Consumer<Msg> consumer, Consumer<IOException> eConsumer){
+        Thread t = new Thread(() -> {
+            try {
+                while(true) {
+                    int length = in.readInt();
+                    int type = in.readInt();
+                    if(type == 30000) {
+                        byte[] bytes = new byte[length - 4];
+                        in.read(bytes);
+                        String jsonText = new String(bytes, StandardCharsets.UTF_8);
+                        Msg msg = new Gson().fromJson(jsonText, Msg.class);
+                        if(consumer != null) {
+                            consumer.accept(msg);
+                        }
+                    }
+                }
+            }
+            catch (IOException e) {
+                if(eConsumer != null) {
+                    eConsumer.accept(e);
+                }
+            }
+        });
+        t.start();
     }
 
     /**
@@ -40,7 +73,7 @@ public class MessageUtils {
      *@param level  @throws IOException
      */
     public static void chat(DataOutput out, String roomId, String content, String nickname, int level) throws IOException {
-        Map<String, Object> params = ImmutableMap.of(
+        Map<String, Object> params = map(
                 "roomId", roomId,
                 "content", content,
                 "nickname", nickname,
@@ -57,7 +90,7 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void support(DataOutput out, String roomId, String nickname, int level) throws IOException {
-        Map<String, Object> params = ImmutableMap.of(
+        Map<String, Object> params = map(
                 "roomId", roomId,
                 "nickname", nickname,
                 "level", level
@@ -74,7 +107,7 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void sendGift(DataOutput out, String roomId, String giftId, String nickname, int level) throws IOException {
-        Map<String, Object> params = ImmutableMap.of(
+        Map<String, Object> params = map(
                 "roomId", roomId,
                 "nickname", nickname,
                 "level", level,
@@ -91,7 +124,7 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void enterRoom(DataOutput out, String roomId, String nickname, int level) throws IOException {
-        Map<String, Object> params = ImmutableMap.of(
+        Map<String, Object> params = map(
                 "roomId", roomId,
                 "nickname", nickname,
                 "level", level
@@ -107,7 +140,7 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void share(DataOutput out, String roomId, String nickname, int level) throws IOException {
-        Map<String, Object> params = ImmutableMap.of(
+        Map<String, Object> params = map(
                 "roomId", roomId,
                 "nickname", nickname,
                 "level", level
@@ -123,7 +156,7 @@ public class MessageUtils {
      * @throws IOException
      */
     public static void levelUp(DataOutput out, String roomId, String nickname, int level) throws IOException {
-        Map<String, Object> params = ImmutableMap.of(
+        Map<String, Object> params = map(
                 "roomId", roomId,
                 "nickname", nickname,
                 "level", level
@@ -132,11 +165,58 @@ public class MessageUtils {
     }
 
     private static void writeMsg(DataOutput out, Object o, int type) throws IOException {
-        String json = new Gson().toJson(o);
+        String json = json(o);
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         out.writeInt(4 + bytes.length);
         out.writeInt(type);
         out.write(bytes);
+    }
+
+    public static class Msg {
+        private String userId, moduleId, content;
+
+        public String getUserId() {
+            return userId;
+        }
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
+        public String getModuleId() {
+            return moduleId;
+        }
+        public void setModuleId(String moduleId) {
+            this.moduleId = moduleId;
+        }
+
+        public String getContent() {
+            return content;
+        }
+        public void setContent(String content) {
+            this.content = content;
+        }
+
+        @Override
+        public String toString() {
+            return json(this);
+        }
+
+    }
+
+    public interface Consumer<T> {
+        void accept(T t);
+    }
+
+    private static <K, V> Map<K, V> map(Object... keyValues) {
+        Map map = new HashMap<>();
+        for(int i = 0; i < keyValues.length / 2; i++) {
+            map.put(keyValues[i * 2], keyValues[i * 2 + 1]);
+        }
+        return map;
+    }
+
+    private static String json(Object o) {
+        return new Gson().toJson(o);
     }
 
 }

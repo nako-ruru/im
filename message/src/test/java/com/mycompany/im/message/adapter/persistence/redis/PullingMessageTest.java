@@ -13,7 +13,7 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath*:framework.xml", "classpath*:mvc.xml"})
-public class JedisPoolTest {
+public class PullingMessageTest {
 
     @Resource
     private MessageController messageRepository;
