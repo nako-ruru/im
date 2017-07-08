@@ -1,4 +1,4 @@
-package com.mycompany.im.spring.mvc;
+package com.mycompany.im.framework.spring.mvc;
 
 import org.springframework.http.converter.StringHttpMessageConverter;
 

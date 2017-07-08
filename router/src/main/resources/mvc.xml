@@ -9,7 +9,7 @@
 
     <mvc:annotation-driven>
         <mvc:message-converters register-defaults="true">
-            <bean class="com.mycompany.im.spring.mvc.UnicodeStringHttpMessageConverter"/>
+            <bean class="com.mycompany.im.framework.spring.mvc.UnicodeStringHttpMessageConverter"/>
         </mvc:message-converters>
     </mvc:annotation-driven>
     

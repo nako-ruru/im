@@ -6,3 +6,6 @@
 /message/target
 /router/target
 /router/.idea
+/websocket_connector/.idea
+/websocket_connector/target
+/websocket_connector/websocket_connector.iml

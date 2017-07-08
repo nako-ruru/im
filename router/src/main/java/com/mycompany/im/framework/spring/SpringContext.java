@@ -1,4 +1,4 @@
-package com.mycompany.im.spring;
+package com.mycompany.im.framework.spring;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
