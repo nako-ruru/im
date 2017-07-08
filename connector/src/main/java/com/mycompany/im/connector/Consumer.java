@@ -1,11 +1,13 @@
 package com.mycompany.im.connector;
 
 import com.google.gson.Gson;
-import redis.clients.jedis.*;
+import com.mycompany.im.util.JedisPoolUtils;
+import redis.clients.jedis.ShardedJedis;
+import redis.clients.jedis.ShardedJedisPipeline;
+import redis.clients.jedis.ShardedJedisPool;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 /**

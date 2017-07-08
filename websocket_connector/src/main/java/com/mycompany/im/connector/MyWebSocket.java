@@ -1,7 +1,7 @@
 package com.mycompany.im.connector;
 
-import com.mycompany.im.work.framework.spring.SpringContext;
-import com.mycompany.im.work.util.JsonUtils;
+import com.mycompany.im.framework.spring.SpringContext;
+import com.mycompany.im.util.JsonUtils;
 import java.io.IOException;
 import javax.websocket.EndpointConfig;
 
@@ -58,38 +58,8 @@ public class MyWebSocket {
          
         Message m = JsonUtils.toBean(message, Message.class);
         switch(m.getCode()) {
-            case "enter":
-                new Enter(session, m).invoke();
-                break;
-            case "exit":
-                new Exit(session).invoke();
-                break;
-            case "prepare":
-                new Prepare(session, "true".equals(String.valueOf(m.getProperties().get("flag")))).invoke();
-                break;
-            case "competeRole":
-                new CompeteRole(session, m.getProperties().get("role")).invoke();
-                break;
-            case "wolfVote":
-                new WolfVote(session, m.getProperties().get("playerId")).invoke();
-                break;
-            case "witchSave":
-                new WitchSave(session, m.getProperties().get("playerId")).invoke();
-                break;
-            case "witchPoison":
-                new WitchPoison(session, m.getProperties().get("playerId")).invoke();
-                break;
-            case "hunterKill":
-                new HunterKill(session, m.getProperties().get("playerId")).invoke();
-                break;
-            case "seerForecast":
-                new SeerForecast(session, m.getProperties().get("playerId")).invoke();
-                break;
-            case "enableMicrophone":
-                new EnableMicrophone(session, true).invoke();
-                break;
-            case "playerVote":
-                new PlayerVote(session, m.getProperties().get("playerId")).invoke();
+            case "chat":
+                new Chat(session, m.getProperties().get("role")).invoke();
                 break;
         }
     }

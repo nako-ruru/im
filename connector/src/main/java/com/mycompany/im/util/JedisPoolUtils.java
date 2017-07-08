@@ -1,4 +1,4 @@
-package com.mycompany.im.connector;
+package com.mycompany.im.util;
 
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisShardInfo;
@@ -17,10 +17,10 @@ import java.util.stream.Stream;
  *
  * @author Administrator
  */
-class JedisPoolUtils {
+public class JedisPoolUtils {
 
-    private static volatile Object lock = new Object();
-    private static ShardedJedisPool pool;
+    private static final Object lock = new Object();
+    private static volatile ShardedJedisPool pool;
 
     public static ShardedJedisPool pool() {
         if(pool == null) {

@@ -90,28 +90,12 @@ public class ClientTest {
 
         private static void writeRandomMessage(DataOutput out, String roomId, String nickname, int level) throws IOException {
             ThreadLocalRandom random = ThreadLocalRandom.current();
-            int[] availableTypes = {1, 2, 3, 4, 5, 6};
+            int[] availableTypes = {1};
             int type = availableTypes[random.nextInt(availableTypes.length)];
             switch (type) {
                 case 1:
                     String content = WORDS[random.nextInt(WORDS.length)];
                     MessageUtils.chat(out, roomId, content, nickname, level);
-                    break;
-                case 2:
-                    MessageUtils.support(out, roomId, nickname, level);
-                    break;
-                case 3:
-                    String giftId = UUID.randomUUID().toString();
-                    MessageUtils.sendGift(out, roomId, giftId, nickname, level);
-                    break;
-                case 4:
-                    MessageUtils.enterRoom(out, roomId, nickname, level);
-                    break;
-                case 5:
-                    MessageUtils.share(out, roomId, nickname, level);
-                    break;
-                case 6:
-                    MessageUtils.levelUp(out, roomId, nickname, level);
                     break;
                 default:
                     break;

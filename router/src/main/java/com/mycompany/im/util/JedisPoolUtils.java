@@ -19,8 +19,8 @@ import java.util.stream.Stream;
  */
 public class JedisPoolUtils {
 
-    private static volatile Object lock = new Object();
-    private static ShardedJedisPool pool;
+    private static final Object lock = new Object();
+    private static volatile ShardedJedisPool pool;
 
     public static ShardedJedisPool pool() {
         if(pool == null) {
