@@ -29,7 +29,7 @@ public class JedisPubSubTest {
 
     @Test
     public void testSub() throws InterruptedException {
-        Jedis jedis = new Jedis("localhost", 9921);
+        Jedis jedis = new Jedis("47.92.98.23", 9921);
         jedis.auth("BrightHe0");
         jedis.subscribe(new JedisPubSub() {
             @Override

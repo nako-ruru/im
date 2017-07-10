@@ -26,7 +26,7 @@ public class JedisPoolUtils {
         if(pool == null) {
             synchronized (lock) {
                 if(pool == null) {
-                    List<JedisShardInfo> jedisShardInfos = read();
+                    List<JedisShardInfo> jedisShardInfos = readJedisShardInfos();
                     pool = new ShardedJedisPool(new JedisPoolConfig(), jedisShardInfos);
                 }
             }
@@ -34,14 +34,20 @@ public class JedisPoolUtils {
         return pool;
     }
 
-    private static List<JedisShardInfo> read() {
+    private static List<JedisShardInfo> readJedisShardInfos() {
         Properties properties = new Properties();
         try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/redis_pool.properties"), StandardCharsets.UTF_8)) {
             properties.load(in);
             String serverInfoText = properties.getProperty("redis");
             List<JedisShardInfo> jedisShardInfos = Stream.of(serverInfoText.split("[;,]"))
                     .map(element -> element.split(":"))
-                    .map(info -> new JedisShardInfo(info[0].trim(), info.length >= 2 ? Integer.parseInt(info[1].trim()) : 6379))
+                    .map((String[] info) -> {
+                        JedisShardInfo jedisShardInfo = new JedisShardInfo(info[0].trim(), info.length >= 2 ? Integer.parseInt(info[1].trim()): 6379);
+                        if(info.length >= 3) {
+                            jedisShardInfo.setPassword(info[2].trim());
+                        }
+                        return jedisShardInfo;
+                    })
                     .collect(Collectors.toList());
             return jedisShardInfos;
         } catch (IOException e) {
