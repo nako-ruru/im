@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.message.domain.Message;
 import com.mycompany.im.message.domain.MessageRepository;
+import com.mycompany.im.util.JedisPoolUtils;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;

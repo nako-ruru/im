@@ -1,6 +1,6 @@
 
 
-import com.mycompany.im.connector.PublicJedisPoolUtils;
+import com.mycompany.im.util.JedisPoolUtils;
 import org.junit.Test;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPipeline;
@@ -13,7 +13,7 @@ public class JedisPoolTest {
 
     @Test
     public void test7shardSimplePool() {
-        ShardedJedisPool pool = PublicJedisPoolUtils.pool();
+        ShardedJedisPool pool = JedisPoolUtils.pool();
 
         ShardedJedis one = pool.getResource();
         ShardedJedisPipeline pipelined1 = one.pipelined();

@@ -140,7 +140,7 @@
                 </excludes>
             </resource>
         </resources>
-        <finalName>wolf</finalName>
+        <finalName>connector</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

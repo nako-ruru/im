@@ -39,14 +39,16 @@ public class Game {
 
     @PostConstruct
     public void init() {
-        JedisCluster jc = JedisPoolUtils.jedisCluster();
-        jc.subscribe(new JedisPubSub() {
-            @Override
-            public void onMessage(String channel, String message) {
-                PushMessage pushMessage = new Gson().fromJson(message, PushMessage.class);
-                sendText(pushMessage.getUserId(), message);
-            }
-        }, "mychannel");
+        Jedis jc = JedisPoolUtils.jedis();
+        new Thread(() -> {
+            jc.subscribe(new JedisPubSub() {
+                @Override
+                public void onMessage(String channel, String message) {
+                    PushMessage pushMessage = new Gson().fromJson(message, PushMessage.class);
+                    sendText(pushMessage.getUserId(), message);
+                }
+            }, "mychannel");
+        }).start();
     }
 
     private void sendText(String userId, String text) {
