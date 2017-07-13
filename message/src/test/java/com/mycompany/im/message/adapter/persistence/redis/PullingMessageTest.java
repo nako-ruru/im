@@ -16,7 +16,7 @@ import java.util.List;
 public class PullingMessageTest {
 
     @Resource
-    private MessageController messageRepository;
+    private MessageController messageController;
 
     @Test
     public void test7shardSimplePool() {
@@ -24,7 +24,7 @@ public class PullingMessageTest {
             setRoomId("12");
             setFrom(1);
         }};
-        List<MessageResult> messages = messageRepository.topic(parameter);
+        List<MessageResult> messages = messageController.topic(parameter);
         System.out.println(messages);
     }
 

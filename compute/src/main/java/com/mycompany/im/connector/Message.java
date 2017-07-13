@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * Created by Administrator on 2017/5/28.
  */
-class Message {
+public class Message {
 
     public final String roomId, userId;
     public final long time;
