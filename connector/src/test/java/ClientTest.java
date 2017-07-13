@@ -57,8 +57,8 @@ public class ClientTest {
         public void start() {
             Socket socket;
             try {
-                String host = "localhost";
-                //String host = "47.92.98.23";
+                //String host = "localhost";
+                String host = "47.92.98.23";
                 socket = new Socket(host, 6000);
 
                 ThreadLocalRandom random = ThreadLocalRandom.current();

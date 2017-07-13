@@ -13,15 +13,18 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by Administrator on 2017/7/2.
  */
 public class KickSilenceTest {
+    
+    //String host = "localhost";
+    String host = "47.92.98.23";
 
     @Test
     public void testKick() throws InterruptedException {
-        Jedis jedis = new Jedis("localhost", 9921);
+        Jedis jedis = new Jedis(host, 9921);
         jedis.auth("BrightHe0");
 
         Payload payload = new Payload();
         payload.setAdd(true);
-        payload.setRoomId("23ad8b16-6e3b-4d29-9a31-30533a3488ea");
+        payload.setRoomId("384ef06d-4bf7-435c-8548-f05b60998ae9");
         payload.setUserId("userId0");
 
         SubMessage msg = new SubMessage();
