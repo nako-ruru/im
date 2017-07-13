@@ -39,7 +39,7 @@ public class JedisPoolUtils {
     
     public static Jedis jedis() {
         HostPortPassword hostPortPassword = readHostPortPasswords().iterator().next();
-        final Jedis jedis = new Jedis(hostPortPassword.host, hostPortPassword.port);
+        final Jedis jedis = new Jedis(hostPortPassword.host, hostPortPassword.port, 1000);
         if(hostPortPassword.password != null) {
             jedis.auth(hostPortPassword.password);
         }
