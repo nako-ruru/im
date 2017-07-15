@@ -1,4 +1,4 @@
-package com.mycompany.im.connector;
+package com.mycompany.im.compute;
 
 public class LaunchCompute {
 

@@ -10,3 +10,4 @@
 /websocket_connector/target
 /websocket_connector/websocket_connector.iml
 /compute/target/
+/compute/src/main/java/com/mycompany/im/compute/adapter/service/keyword.txt

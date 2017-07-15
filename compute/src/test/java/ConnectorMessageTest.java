@@ -1,12 +1,9 @@
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import com.mycompany.im.connector.Message;
-import com.mycompany.im.connector.MessageUtils;
+import com.mycompany.im.compute.Message;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
-import java.io.*;
-import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 

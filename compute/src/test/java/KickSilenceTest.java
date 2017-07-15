@@ -1,13 +1,8 @@
 import com.google.gson.Gson;
-import com.mycompany.im.connector.MessageUtils;
-import com.mycompany.im.connector.Payload;
-import com.mycompany.im.connector.SubMessage;
+import com.mycompany.im.compute.Payload;
+import com.mycompany.im.compute.SubMessage;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPubSub;
-
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Administrator on 2017/7/2.

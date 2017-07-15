@@ -1,4 +1,4 @@
-package com.mycompany.im.connector;
+package com.mycompany.im.compute;
 
 /**
  * Created by Administrator on 2017/7/10.
