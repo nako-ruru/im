@@ -3,12 +3,14 @@ package com.mycompany.im.compute.adapter.service;
 import com.google.common.io.CharStreams;
 import com.ijimu.capital.BlackKeyword;
 import com.mycompany.im.compute.KeyWorldHandler;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -21,9 +23,16 @@ import java.util.regex.Pattern;
  */
 public class KeyWorldHandlerImpl implements KeyWorldHandler {
 
-    Logger logger = Logger.getLogger(getClass().getName());
+    private static final Logger LOGGER = Logger.getLogger(KeyWorldHandlerImpl.class .getName());
 
     private BlackKeyword blackKeyword = new BlackKeyword();
+
+    private JavaSparkContext ctx = new JavaSparkContext(
+            "local",
+            "JavaWordCount",
+            System.getenv("SPARK_HOME"),
+            JavaSparkContext.jarOfClass(getClass())
+    );
 
     public KeyWorldHandlerImpl() {
         try(InputStream in = getClass().getResourceAsStream("/com/mycompany/im/compute/adapter/service/keyword.txt")) {
@@ -36,13 +45,16 @@ public class KeyWorldHandlerImpl implements KeyWorldHandler {
             }
             blackKeyword = new BlackKeyword(keywords);
         } catch (IOException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
     }
 
     @Override
     public String handle(String input) {
-        return blackKeyword.checkAndReplace(input);
+        JavaRDD<String> lines = ctx.parallelize(Arrays.asList(input));
+        lines.cache();
+        return lines.map(blackKeyword::checkAndReplace)
+                .first();
     }
 
 }

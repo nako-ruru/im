@@ -3,6 +3,7 @@ package com.ijimu.capital;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -11,7 +12,7 @@ import java.util.*;
  * @author cjx, qqd
  * @since  2010-7-22
  */
-public class BlackKeyword {
+public class BlackKeyword implements Serializable {
 
     private static Log log = LogFactory.getLog(BlackKeyword.class);
 
@@ -99,7 +100,7 @@ public class BlackKeyword {
     }
 
 
-    public class BlackWordHashNode {
+    private static class BlackWordHashNode implements Serializable {
         private String text=null;//节点字符串
         private BlackWordHashNode next=null;//下一节点
         public String getText() {
