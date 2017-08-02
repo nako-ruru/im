@@ -1,6 +1,6 @@
 import com.google.gson.Gson;
-import com.mycompany.im.compute.Payload;
-import com.mycompany.im.compute.SubMessage;
+import com.mycompany.im.compute.domain.Payload;
+import com.mycompany.im.compute.domain.SubMessage;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 

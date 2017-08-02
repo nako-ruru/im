@@ -1,4 +1,4 @@
-package com.mycompany.im.compute;
+package com.mycompany.im.compute.domain;
 
 import java.util.Map;
 

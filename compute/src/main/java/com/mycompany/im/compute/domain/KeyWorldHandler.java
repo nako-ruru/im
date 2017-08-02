@@ -1,4 +1,4 @@
-package com.mycompany.im.compute;
+package com.mycompany.im.compute.domain;
 
 /**
  * Created by Administrator on 2017/7/15.

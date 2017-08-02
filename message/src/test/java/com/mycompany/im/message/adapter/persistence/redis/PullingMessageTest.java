@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({"classpath*:framework.xml", "classpath*:mvc.xml"})
+@ContextConfiguration({"classpath*:framework.xml", "classpath*:mvc.xml", "classpath*:performance-monitor.xml"})
 public class PullingMessageTest {
 
     @Resource
@@ -24,7 +24,7 @@ public class PullingMessageTest {
             setRoomId("12");
             setFrom(1);
         }};
-        List<MessageResult> messages = messageController.topic(parameter);
+        List<MessageResult> messages = messageController.findByRoomIdAndGreaterThan(parameter);
         System.out.println(messages);
     }
 

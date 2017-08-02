@@ -1,5 +1,3 @@
-package com.mycompany.im.connector;
-
 import org.junit.Test;
 
 /**

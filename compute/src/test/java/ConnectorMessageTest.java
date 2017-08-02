@@ -1,6 +1,6 @@
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import com.mycompany.im.compute.Message;
+import com.mycompany.im.compute.domain.Message;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 

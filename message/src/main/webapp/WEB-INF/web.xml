@@ -38,7 +38,8 @@
             <param-name>contextConfigLocation</param-name>
             <param-value>
                 classpath:framework.xml,
-                classpath:mvc.xml
+                classpath:mvc.xml,
+                classpath:performance-monitor.xml
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
@@ -47,5 +48,14 @@
         <servlet-name>spring-dispatcher</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+
+    <listener>
+        <listener-class>org.apache.logging.log4j.web.Log4jServletContextListener</listener-class>
+    </listener>
+
+    <context-param>
+        <param-name>log4jConfiguration</param-name>
+        <param-value>classpath:log4j2.xml</param-value>
+    </context-param>
 
 </web-app>

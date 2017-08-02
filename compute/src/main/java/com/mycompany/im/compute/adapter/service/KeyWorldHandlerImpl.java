@@ -2,9 +2,12 @@ package com.mycompany.im.compute.adapter.service;
 
 import com.google.common.io.CharStreams;
 import com.ijimu.capital.BlackKeyword;
-import com.mycompany.im.compute.KeyWorldHandler;
+import com.mycompany.im.compute.domain.KeyWorldHandler;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.jvnet.hk2.annotations.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,17 +16,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Created by Administrator on 2017/7/15.
  */
+@Service
 public class KeyWorldHandlerImpl implements KeyWorldHandler {
 
-    private static final Logger LOGGER = Logger.getLogger(KeyWorldHandlerImpl.class .getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeyWorldHandlerImpl.class .getName());
 
     private BlackKeyword blackKeyword = new BlackKeyword();
 
@@ -45,7 +47,7 @@ public class KeyWorldHandlerImpl implements KeyWorldHandler {
             }
             blackKeyword = new BlackKeyword(keywords);
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            LOGGER.error("", e);
         }
     }
 
