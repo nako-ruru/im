@@ -13,3 +13,5 @@
 /compute/src/main/java/com/mycompany/im/compute/adapter/service/keyword.txt
 /compute.error
 /compute.log
+/peformance_test/.idea
+/peformance_test/target
