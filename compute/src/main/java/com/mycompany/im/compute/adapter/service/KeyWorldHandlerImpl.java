@@ -7,9 +7,9 @@ import com.mycompany.im.compute.domain.KeyWorldHandler;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
-import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -35,7 +35,7 @@ public class KeyWorldHandlerImpl implements KeyWorldHandler {
             System.getenv("SPARK_HOME"),
             JavaSparkContext.jarOfClass(getClass())
     );
-    JavaRDD<Broadcast<BlackKeyword>> cache;
+    JavaRDD<Broadcast<BlackKeywordWrapper>> cache;
 
     public KeyWorldHandlerImpl() {
         try(InputStream in = getClass().getResourceAsStream("/com/mycompany/im/compute/adapter/service/keyword.txt")) {
@@ -47,7 +47,7 @@ public class KeyWorldHandlerImpl implements KeyWorldHandler {
                 keywords.add(matcher.group(1));
             }
 
-            Broadcast<BlackKeyword> broadcast = ctx.broadcast((new BlackKeyword(keywords)));
+            Broadcast<BlackKeywordWrapper> broadcast = ctx.broadcast(new BlackKeywordWrapper(new BlackKeyword(keywords)));
             cache = ctx.parallelize(Arrays.asList(broadcast))
                     .cache();
         } catch (IOException e) {
