@@ -7,7 +7,7 @@
 
 
     <Appenders>
-        <RollingRandomAccessFile name="FILE" fileName="compute.log" filePattern="compute-%i.log">
+        <RollingRandomAccessFile name="FILE" fileName="logs/compute.log" filePattern="logs/compute-%i.log">
             <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c] %m%n"/>
             <SizeBasedTriggeringPolicy size="10 MB" />
         </RollingRandomAccessFile>
@@ -20,7 +20,7 @@
             <BurstFilter level="WARN" rate="160" maxBurst="1600"/>
         </Async>
 
-        <RollingRandomAccessFile name="ERROR_FILE" fileName="compute.error" filePattern="compute-%d{yyyy-MM-dd}-%i.error">
+        <RollingRandomAccessFile name="ERROR_FILE" fileName="logs/compute.error" filePattern="logs/compute-%d{yyyy-MM-dd}-%i.error">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t] [%c] %m%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10 MB" />
@@ -40,6 +40,12 @@
         </logger>
 
         <logger name="org.springframework" level="WARN" additivity="false">
+            <AppenderRef ref="FILE"/>
+            <AppenderRef ref="CONSOLE"/>
+            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+        </logger>
+
+        <logger name="org.apache.spark" level="WARN" additivity="false">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>
             <AppenderRef ref="ERROR_FILE" level="ERROR"/>

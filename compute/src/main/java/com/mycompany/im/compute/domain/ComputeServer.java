@@ -12,7 +12,9 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
+import java.net.SocketException;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,50 +36,62 @@ public class ComputeServer {
         );
         KeyWorldHandler keyWorldHandler = applicationContext.getBean(KeyWorldHandler.class);
 
-        Jedis jedis = JedisPoolUtils.jedis();
         ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
-        jedis.subscribe(new JedisPubSub() {
-            @Override
-            public void onMessage(String channel, String message) {
-                try {
-                    if("connector".equals(channel)) {
-                        Message msg = new Gson().fromJson(message, Message.class);
-                        if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
-                            String oldContent = (String) msg.params.get("content");
-                            String newContent = keyWorldHandler.handle(oldContent);
-                            String newMessage = message;
-                            if(!Objects.equals(newContent, oldContent)) {
-                                msg.params.put("content", newContent);
-                                newMessage = new Gson().toJson(msg);
+        do {
+            try {
+                Jedis jedis = JedisPoolUtils.jedis();
+                jedis.subscribe(new JedisPubSub() {
+                    @Override
+                    public void onMessage(String channel, String message) {
+                        try {
+                            if("connector".equals(channel)) {
+                                Message msg = new Gson().fromJson(message, Message.class);
+                                if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
+                                    String oldContent = (String) msg.params.get("content");
+                                    String newContent = keyWorldHandler.handle(oldContent);
+                                    String newMessage = message;
+                                    if(!Objects.equals(newContent, oldContent)) {
+                                        msg.params.put("content", newContent);
+                                        newMessage = new Gson().toJson(msg);
+                                    }
+                                    try(ShardedJedis shardedJedis = pool.getResource()) {
+                                        shardedJedis.rpush(msg.roomId, newMessage);
+                                    }
+                                }
                             }
-                            try(ShardedJedis shardedJedis = pool.getResource()) {
-                                shardedJedis.rpush(msg.roomId, newMessage);
+                            else if("room_manage_channel".equals(channel)) {
+                                SubMessage subMessage = new Gson().fromJson(message, SubMessage.class);
+                                if("silence".equals(subMessage.getType())) {
+                                    Payload silenceMessage = subMessage.getPayload();
+                                    if(silenceMessage.isAdd()) {
+                                        silencedList.put(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                    } else {
+                                        silencedList.remove(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                    }
+                                }
+                                else if("kick".equals(subMessage.getType())) {
+                                    Payload silenceMessage = subMessage.getPayload();
+                                    if(silenceMessage.isAdd()) {
+                                        kickedList.put(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                    } else {
+                                        kickedList.remove(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                    }
+                                }
                             }
+                        } catch (Exception e) {
+                            logger.error("", e);
                         }
                     }
-                    else if("room_manage_channel".equals(channel)) {
-                        SubMessage subMessage = new Gson().fromJson(message, SubMessage.class);
-                        if("silence".equals(subMessage.getType())) {
-                            Payload silenceMessage = subMessage.getPayload();
-                            if(silenceMessage.isAdd()) {
-                                silencedList.put(silenceMessage.getRoomId(), silenceMessage.getUserId());
-                            } else {
-                                silencedList.remove(silenceMessage.getRoomId(), silenceMessage.getUserId());
-                            }
-                        }
-                        else if("kick".equals(subMessage.getType())) {
-                            Payload silenceMessage = subMessage.getPayload();
-                            if(silenceMessage.isAdd()) {
-                                kickedList.put(silenceMessage.getRoomId(), silenceMessage.getUserId());
-                            } else {
-                                kickedList.remove(silenceMessage.getRoomId(), silenceMessage.getUserId());
-                            }
-                        }
+                }, "room_manage_channel", "connector");
+            } catch (JedisConnectionException e) {
+                logger.error("", e);
+                if(e.getCause() != null && e.getCause() instanceof SocketException) {
+                    if("Connection reset".equals(e.getCause().getMessage())) {
+                        continue;
                     }
-                } catch (Exception e) {
-                    logger.error("", e);
                 }
+                break;
             }
-        }, "room_manage_channel", "connector");
+        } while (true);
     }
 }

@@ -2,9 +2,7 @@ package com.mycompany.im.util;
 
 import com.google.gson.Gson;
 
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -82,12 +80,19 @@ public class MessageUtils {
         writeMsg(out, params, 1);
     }
 
-    private static void writeMsg(DataOutput out, Object o, int type) throws IOException {
+    static byte[] createMsg(Object o, int type) throws IOException {
         String json = json(o);
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(4 + 4 + bytes.length);
+        DataOutputStream out = new DataOutputStream(baos);
         out.writeInt(4 + bytes.length);
         out.writeInt(type);
         out.write(bytes);
+        return baos.toByteArray();
+    }
+
+    private static void writeMsg(DataOutput out, Object o, int type) throws IOException {
+        out.write(createMsg(o, type));
     }
 
     public static class Msg {

@@ -4,7 +4,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -18,9 +21,9 @@ public class BlackKeyword implements Serializable {
 
     public static boolean DEBUG = false;
 
-    public List<String> keywords = null;
+    private List<String> keywords = null;
     /** 基于hash的多模匹配算法: hash算法初始化表(by 王维) */
-    private Hashtable<String, BlackWordHashNode> firstCharHash = null;
+    Map<String, BlackWordHashNode> firstCharHash = null;
 
     /** 构造函数 */
     public BlackKeyword(List<String> keywords){
@@ -57,10 +60,10 @@ public class BlackKeyword implements Serializable {
     }
 
     /** 初始化“快速匹配算法”需要的首字符hash表 */
-    public boolean initTable(List<String> keys) {
+    private boolean initTable(List<String> keys) {
         long startTime = System.currentTimeMillis();//开始时间
         boolean isMultipleKeyWord = false;
-        firstCharHash = new Hashtable<String, BlackWordHashNode>(4096);
+        firstCharHash = new HashMap(4096);
         BlackWordHashNode node = null;
         String firstChar = null;
         try {
@@ -100,7 +103,7 @@ public class BlackKeyword implements Serializable {
     }
 
 
-    private static class BlackWordHashNode implements Serializable {
+    static class BlackWordHashNode implements Serializable {
         private String text=null;//节点字符串
         private BlackWordHashNode next=null;//下一节点
         public String getText() {
@@ -115,6 +118,9 @@ public class BlackKeyword implements Serializable {
         public void setNext(BlackWordHashNode next) {
             this.next = next;
         }
+        public String toString() {
+            return "node(" + text + ")";
+        }
     }
 
     /** 检验是否包含有某种关键词
@@ -126,7 +132,7 @@ public class BlackKeyword implements Serializable {
     }
 
     /** 原始算法 */
-    public String check0(String src){
+    private String check0(String src){
         if(keywords == null) return null;
         try{
             for(String word : keywords) {
@@ -144,7 +150,7 @@ public class BlackKeyword implements Serializable {
     }
 
     /** hash快速匹配算法 */
-    public String check1(String artical){//检查输入的文章
+    private String check1(String artical){//检查输入的文章
         if(firstCharHash == null) return null;
         try{
             int count = 0, srclen = artical.length();
@@ -646,7 +652,7 @@ public class BlackKeyword implements Serializable {
     }
 
 
-    public static int isValidName(String src) {
+    private static int isValidName(String src) {
         if(src == null || src.length() <= 0) return -1;
         for(int i=0; i<src.length(); i++) {
             //str.substring(i, i+1).matches("[\\u4e00-\\u9fa5]+")
