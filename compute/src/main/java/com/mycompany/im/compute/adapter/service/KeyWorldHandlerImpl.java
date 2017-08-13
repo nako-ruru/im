@@ -1,15 +1,18 @@
 package com.mycompany.im.compute.adapter.service;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.github.fge.lambdas.consumers.ThrowingBiConsumer;
 import com.google.common.io.CharStreams;
 import com.ijimu.capital.BlackKeyword;
 import com.mycompany.im.compute.domain.KeyWorldHandler;
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.serializer.KryoRegistrator;
+import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -29,15 +32,17 @@ public class KeyWorldHandlerImpl implements KeyWorldHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyWorldHandlerImpl.class .getName());
 
-    private JavaSparkContext ctx = new JavaSparkContext(
-            "local",
-            "JavaWordCount",
-            System.getenv("SPARK_HOME"),
-            JavaSparkContext.jarOfClass(getClass())
-    );
-    JavaRDD<Broadcast<BlackKeywordWrapper>> cache;
+    private JavaSparkContext ctx;
+    JavaRDD<BlackKeyword> map;
 
     public KeyWorldHandlerImpl() {
+        SparkConf conf = new SparkConf();
+        conf.setMaster("local");
+        conf.setAppName("compute");
+        conf.set("spark.serializer", "org.apache.spark.serializer.JavaSerializer");
+        conf.set("spark.kryo.registrator", MyKryoRegistrator.class.getName());
+        ctx = new JavaSparkContext(conf);
+
         try(InputStream in = getClass().getResourceAsStream("/com/mycompany/im/compute/adapter/service/keyword.txt")) {
             String content = CharStreams.toString(new InputStreamReader(in, StandardCharsets.UTF_8));
             Pattern compile = Pattern.compile("\\(\\s*\\d+\\s*,\\s*['\"](.+?)['\"]\\)");
@@ -47,9 +52,9 @@ public class KeyWorldHandlerImpl implements KeyWorldHandler {
                 keywords.add(matcher.group(1));
             }
 
-            Broadcast<BlackKeywordWrapper> broadcast = ctx.broadcast(new BlackKeywordWrapper(new BlackKeyword(keywords)));
-            cache = ctx.parallelize(Arrays.asList(broadcast))
-                    .cache();
+            Broadcast<BlackKeyword> broadcast = ctx.broadcast((new BlackKeyword(keywords)));
+            map = ctx.parallelize(Arrays.asList(broadcast))
+                    .map(b -> b.value());
         } catch (IOException e) {
             LOGGER.error("", e);
         }
@@ -57,9 +62,18 @@ public class KeyWorldHandlerImpl implements KeyWorldHandler {
 
     @Override
     public String handle(String input) {
-        String result = cache.map(keyword -> keyword.value().checkAndReplace(input))
+        String result = map
+                .map(keyword -> keyword.checkAndReplace(input))
                 .first();
         return result;
+    }
+
+
+    public static class MyKryoRegistrator implements KryoRegistrator {
+        @Override
+        public void registerClasses(Kryo kryo) {
+            kryo.register(BlackKeyword.class);
+        }
     }
     
     private static class BlackKeywordWrapper implements Externalizable {

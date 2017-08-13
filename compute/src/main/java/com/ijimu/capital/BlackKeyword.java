@@ -21,7 +21,7 @@ public class BlackKeyword implements Serializable {
 
     public static boolean DEBUG = false;
 
-    private List<String> keywords = null;
+    private transient List<String> keywords = null;
     /** 基于hash的多模匹配算法: hash算法初始化表(by 王维) */
     Map<String, BlackWordHashNode> firstCharHash = null;
 
