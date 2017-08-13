@@ -34,7 +34,7 @@ public class ComputeServer {
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
                 "framework.xml", "performance-monitor.xml"
         );
-        KeyWorldHandler keyWorldHandler = applicationContext.getBean(KeyWorldHandler.class);
+        KeywordHandler keywordHandler = applicationContext.getBean(KeywordHandler.class);
 
         ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
         do {
@@ -48,7 +48,7 @@ public class ComputeServer {
                                 Message msg = new Gson().fromJson(message, Message.class);
                                 if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
                                     String oldContent = (String) msg.params.get("content");
-                                    String newContent = keyWorldHandler.handle(oldContent);
+                                    String newContent = keywordHandler.handle(oldContent);
                                     String newMessage = message;
                                     if(!Objects.equals(newContent, oldContent)) {
                                         msg.params.put("content", newContent);
