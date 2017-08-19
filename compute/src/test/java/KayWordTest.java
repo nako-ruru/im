@@ -15,7 +15,7 @@ public class KayWordTest {
 
         long start = System.currentTimeMillis();
 
-        for(int i = 0; i < 1000; i++) {
+        for(int i = 0; i < 10000; i++) {
             String result1 = keywordHandler.handle("彩票开奖日期是哪天");
             Assert.assertEquals("彩票****是哪天", result1);
 

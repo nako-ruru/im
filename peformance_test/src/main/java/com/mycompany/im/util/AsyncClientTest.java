@@ -19,10 +19,10 @@ import java.util.concurrent.ScheduledExecutorService;
 public class AsyncClientTest {
 
     public static void main(String[] args) throws Exception {
-        int clientCount = 500;
+        int clientCount = 1;
         long interval = 3000L;
-        String address = "localhost:6000";
-//       String address = "47.92.98.23:6000";
+//         String address = "localhost:6000";
+      String address = "47.92.98.23:6000";
 
         if(args.length >= 1) {
             clientCount = Integer.parseInt(args[0]);

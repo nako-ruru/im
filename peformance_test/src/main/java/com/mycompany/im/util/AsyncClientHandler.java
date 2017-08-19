@@ -45,7 +45,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
         register(ctx.channel(), userId);
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             ThreadLocalRandom random = ThreadLocalRandom.current();
-            String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
+            String roomId = "bright";
             int level = random.nextInt(1, 100);
             String nickname = UUID.randomUUID().toString();
             String content = WORDS[random.nextInt(WORDS.length)];

@@ -15,15 +15,15 @@ import java.util.Map;
  * @author cjx, qqd
  * @since  2010-7-22
  */
-public class BlackKeyword implements Serializable {
+public class BlackKeyword {
 
     private static Log log = LogFactory.getLog(BlackKeyword.class);
 
     public static boolean DEBUG = false;
 
-    private transient List<String> keywords = null;
+    private List<String> keywords = null;
     /** 基于hash的多模匹配算法: hash算法初始化表(by 王维) */
-    Map<String, BlackWordHashNode> firstCharHash = null;
+    private Map<String, BlackWordHashNode> firstCharHash = null;
 
     /** 构造函数 */
     public BlackKeyword(List<String> keywords){
@@ -103,7 +103,7 @@ public class BlackKeyword implements Serializable {
     }
 
 
-    static class BlackWordHashNode implements Serializable {
+    private static class BlackWordHashNode {
         private String text=null;//节点字符串
         private BlackWordHashNode next=null;//下一节点
         public String getText() {
