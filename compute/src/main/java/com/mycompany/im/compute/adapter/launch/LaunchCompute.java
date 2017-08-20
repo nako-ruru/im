@@ -1,4 +1,6 @@
-package com.mycompany.im.compute.domain;
+package com.mycompany.im.compute.adapter.launch;
+
+import com.mycompany.im.compute.domain.ComputeServer;
 
 public class LaunchCompute {
 

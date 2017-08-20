@@ -1,7 +1,6 @@
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import com.mycompany.im.compute.domain.Message;
-import org.junit.Test;
+import com.mycompany.im.compute.domain.ConnectorMessage;
 import redis.clients.jedis.Jedis;
 
 import java.util.UUID;
@@ -12,15 +11,14 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ConnectorMessageTest {
 
-    @Test
-    public void testA() throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
 
         Jedis jedis = new Jedis("localhost", 9921);
         jedis.auth("BrightHe0");
 
         //通过修改roomId和userId来测试消息通过与否
         while (true) {
-            Message msg = new Message(
+            ConnectorMessage msg = new ConnectorMessage(
                     "room002",
                     "user001",
                     1,

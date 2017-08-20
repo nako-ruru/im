@@ -3,7 +3,7 @@ package com.mycompany.im.compute.domain;
 /**
  * Created by Administrator on 2017/7/10.
  */
-public class SubMessage {
+public class RoomManagementMessage {
 
     private String type;
     private Payload payload;
@@ -23,4 +23,5 @@ public class SubMessage {
     public void setPayload(Payload payload) {
         this.payload = payload;
     }
+
 }

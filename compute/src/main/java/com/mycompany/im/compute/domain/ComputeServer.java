@@ -38,6 +38,12 @@ public class ComputeServer {
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
                 "framework.xml", "performance-monitor.xml"
         );
+
+        RoomManagementQuery roomManagementQuery = applicationContext.getBean(RoomManagementQuery.class);
+        RoomManagementQuery.RoomManagementInfo roomManagementInfo = roomManagementQuery.query();
+        silencedList.putAll(roomManagementInfo.getSilenceList());
+        kickedList.putAll(roomManagementInfo.getKickList());
+
         KeywordHandler keywordHandler = applicationContext.getBean(KeywordHandler.class);
 
         ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
@@ -54,22 +60,26 @@ public class ComputeServer {
                                     handleIncomingMessage(message, keywordHandler, pool);
                                 }
                                 else if("room_manage_channel".equals(channel)) {
-                                    SubMessage subMessage = new Gson().fromJson(message, SubMessage.class);
-                                    if("silence".equals(subMessage.getType())) {
-                                        Payload silenceMessage = subMessage.getPayload();
-                                        if(silenceMessage.isAdd()) {
-                                            silencedList.put(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                    RoomManagementMessage msg = new Gson().fromJson(message, RoomManagementMessage.class);
+                                    if("silence".equals(msg.getType())) {
+                                        Payload payload = msg.getPayload();
+                                        if(payload.isAdd()) {
+                                            silencedList.put(payload.getRoomId(), payload.getUserId());
                                         } else {
-                                            silencedList.remove(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                            silencedList.remove(payload.getRoomId(), payload.getUserId());
                                         }
                                     }
-                                    else if("kick".equals(subMessage.getType())) {
-                                        Payload silenceMessage = subMessage.getPayload();
-                                        if(silenceMessage.isAdd()) {
-                                            kickedList.put(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                    else if("kick".equals(msg.getType())) {
+                                        Payload payload = msg.getPayload();
+                                        if(payload.isAdd()) {
+                                            kickedList.put(payload.getRoomId(), payload.getUserId());
                                         } else {
-                                            kickedList.remove(silenceMessage.getRoomId(), silenceMessage.getUserId());
+                                            kickedList.remove(payload.getRoomId(), payload.getUserId());
                                         }
+                                    }
+                                    else if("dispose".equals(msg.getType())) {
+                                        Payload payload = msg.getPayload();
+                                        silencedList.removeAll(payload.getRoomId());
                                     }
                                 }
                             } catch (Exception e) {
@@ -97,14 +107,13 @@ public class ComputeServer {
         Channel channel = connection.createChannel();
 
         channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+        System.out.println(" [*] Waiting for messages.");
 
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                     throws IOException {
                 String message = new String(body, "UTF-8");
-                logger.info(" [x] Received '" + message + "'");
 
                 handleIncomingMessage(message, keywordHandler, pool);
             }
@@ -113,7 +122,9 @@ public class ComputeServer {
     }
 
     private void handleIncomingMessage(String message, KeywordHandler keywordHandler, ShardedJedisPool pool) {
-        Message msg = new Gson().fromJson(message, Message.class);
+        logger.info(" [x] Received '" + message + "'");
+
+        ConnectorMessage msg = new Gson().fromJson(message, ConnectorMessage.class);
         if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
             String oldContent = (String) msg.params.get("content");
             String newContent = keywordHandler.handle(oldContent);

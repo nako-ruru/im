@@ -6,11 +6,10 @@ import org.junit.Test;
 /**
  * Created by Administrator on 2017/7/21.
  */
-public class KayWordTest {
+public class KeywordTest {
 
-    
     @Test
-    public void testSpark1() throws InterruptedException {
+    public void testKeyword() throws InterruptedException {
         KeywordHandler keywordHandler = new KeywordHandlerImpl();
 
         long start = System.currentTimeMillis();
