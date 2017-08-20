@@ -34,10 +34,12 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
 
     private final String userId;
     private final ScheduledExecutorService scheduledExecutorService;
+    private final long interval;
 
-    public AsyncClientHandler(String userId, ScheduledExecutorService scheduledExecutorService) {
+    public AsyncClientHandler(String userId, ScheduledExecutorService scheduledExecutorService, long interval) {
         this.userId = userId;
         this.scheduledExecutorService = scheduledExecutorService;
+        this.interval = interval;
     }
 
     @Override
@@ -45,7 +47,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
         register(ctx.channel(), userId);
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             ThreadLocalRandom random = ThreadLocalRandom.current();
-            String roomId = "bright";
+            String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
             int level = random.nextInt(1, 100);
             String nickname = UUID.randomUUID().toString();
             String content = WORDS[random.nextInt(WORDS.length)];
@@ -56,7 +58,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                 e.printStackTrace();
             }
 
-        }, 1000, 1000, TimeUnit.MILLISECONDS);
+        }, interval, interval, TimeUnit.MILLISECONDS);
     }
 
     @Override

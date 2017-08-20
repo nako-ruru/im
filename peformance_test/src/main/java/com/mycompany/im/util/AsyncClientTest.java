@@ -19,10 +19,10 @@ import java.util.concurrent.ScheduledExecutorService;
 public class AsyncClientTest {
 
     public static void main(String[] args) throws Exception {
-        int clientCount = 1;
-        long interval = 3000L;
-//         String address = "localhost:6000";
-      String address = "47.92.98.23:6000";
+        int clientCount = 2;
+        long interval = 1000L;
+         String address = "localhost:6000";
+//      String address = "47.92.98.23:6000";
 
         if(args.length >= 1) {
             clientCount = Integer.parseInt(args[0]);
@@ -44,12 +44,14 @@ public class AsyncClientTest {
             host = address;
             port = 6000;
         }
+        long finalInterval = interval;
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 2);
-        Executor executor = Executors.newCachedThreadPool();
+        Executor executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+
+        EventLoopGroup workerGroup = new NioEventLoopGroup(0, executor);
 
         for(int i = 0; i < clientCount; i++) {
-            EventLoopGroup workerGroup = new NioEventLoopGroup(0, executor);
             String userId = "userId" + i;
             try {
                 Bootstrap b = new Bootstrap(); // (1)
@@ -59,7 +61,7 @@ public class AsyncClientTest {
                 b.handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new AsyncClientHandler(userId, scheduledExecutorService));
+                        ch.pipeline().addLast(new AsyncClientHandler(userId, scheduledExecutorService, finalInterval));
                     }
                 });
 
