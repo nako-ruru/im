@@ -9,4 +9,6 @@ public interface MessageRepository {
 
     List<Message> findByRoomIdAndGreaterThan(String roomId, long from);
 
+    void purge();
+
 }

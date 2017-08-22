@@ -17,3 +17,5 @@
 /peformance_test/target
 /compute/logs
 /logs
+/message/message.error
+/message/message.log

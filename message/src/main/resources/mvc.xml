@@ -13,8 +13,7 @@
         </mvc:message-converters>
     </mvc:annotation-driven>
     
-    <bean id="multipartResolver"
-            class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
+    <bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
     </bean>
 
 </beans>

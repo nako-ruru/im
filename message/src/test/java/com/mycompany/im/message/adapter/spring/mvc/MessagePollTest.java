@@ -1,6 +1,5 @@
-package com.mycompany.im.message.adapter.persistence.redis;
+package com.mycompany.im.message.adapter.spring.mvc;
 
-import com.mycompany.im.message.adapter.spring.mvc.MessageController;
 import com.mycompany.im.message.application.MessageParameter;
 import com.mycompany.im.message.application.MessageResult;
 import org.junit.Test;
@@ -13,13 +12,13 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath*:framework.xml", "classpath*:mvc.xml", "classpath*:performance-monitor.xml"})
-public class PullingMessageTest {
+public class MessagePollTest {
 
     @Resource
     private MessageController messageController;
 
     @Test
-    public void test7shardSimplePool() {
+    public void poll() {
         MessageParameter parameter = new MessageParameter() {{
             setRoomId("12");
             setFrom(1);

@@ -2,7 +2,6 @@ package com.mycompany.im.message.application;
 
 import com.mycompany.im.message.domain.Message;
 import com.mycompany.im.message.domain.MessageRepository;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

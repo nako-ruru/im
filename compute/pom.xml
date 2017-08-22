@@ -194,7 +194,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.mycompany.im.compute.domain.LaunchCompute</mainClass>
+                            <mainClass>com.mycompany.im.compute.adapter.launch.LaunchCompute</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

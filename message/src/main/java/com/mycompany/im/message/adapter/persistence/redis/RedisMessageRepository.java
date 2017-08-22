@@ -5,14 +5,15 @@ import com.google.gson.Gson;
 import com.mycompany.im.message.domain.Message;
 import com.mycompany.im.message.domain.MessageRepository;
 import com.mycompany.im.util.JedisPoolUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.ShardedJedis;
+import redis.clients.jedis.ShardedJedisPipeline;
 import redis.clients.jedis.ShardedJedisPool;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,6 +22,8 @@ import java.util.stream.Stream;
  */
 @Component
 public class RedisMessageRepository implements MessageRepository {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     public List<Message> findByRoomIdAndGreaterThan(String roomId, long from) {
@@ -34,9 +37,9 @@ public class RedisMessageRepository implements MessageRepository {
             List<String> roomMessageTextList = resource.lrange(roomId, 0, -1);
             List<String> worldMessageTextList = resource.lrange("world", 0, -1);
             List<Message> roomMessageList = convertAndFilter(from, roomMessageTextList);
-            List<Message> worldMessageText = convertAndFilter(from, worldMessageTextList);
+            List<Message> worldMessageList = convertAndFilter(from, worldMessageTextList);
 
-            List<Message> values = Stream.of(roomMessageList, worldMessageText)
+            List<Message> values = Stream.of(roomMessageList, worldMessageList)
                     .flatMap(Collection::stream)
                     .sorted(Comparator.comparingLong(Message::getTime))
                     .collect(Collectors.toList());
@@ -45,6 +48,39 @@ public class RedisMessageRepository implements MessageRepository {
                 return values;
             } else {
                 return newEmptyMessages(roomId);
+            }
+        }
+    }
+
+    @Override
+    public void purge() {
+        ShardedJedisPool pool = JedisPoolUtils.pool();
+        try (ShardedJedis resource = pool.getResource()) {
+
+            Set<String> keys = resource.getAllShards().stream()
+                    .flatMap(jedis -> jedis.keys("*").stream())
+                    .collect(Collectors.toSet());
+            keys.add("world");
+
+            for(String key : keys) {
+                try {
+                    List<String> messageTextList = resource.lrange(key, 0, -1);
+                    List<Message> messageList = convert(messageTextList);
+
+                    long now = System.currentTimeMillis();
+                    ShardedJedisPipeline pipelined = resource.pipelined();
+                    for(int i = 0; i < messageList.size(); i++) {
+                        Message message = messageList.get(i);
+                        if(message.getTime() <= now - TimeUnit.HOURS.toMillis(1)) {
+                            pipelined.lrem(key,  1, messageTextList.get(i));
+                        } else {
+                            break;
+                        }
+                    }
+                    pipelined.sync();
+                } catch (Exception e) {
+                    logger.error("", e);
+                }
             }
         }
     }
@@ -60,12 +96,17 @@ public class RedisMessageRepository implements MessageRepository {
         return Arrays.asList(message);
     }
 
-    private List<Message> convertAndFilter(Long from, List<String> roomMessageTextList) {
+    private List<Message> convert(List<String> roomMessageTextList) {
         Gson gson = new Gson();
         return roomMessageTextList.stream()
                 .map(v -> gson.fromJson(v, Message.class))
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private List<Message> convertAndFilter(long from, List<String> roomMessageTextList) {
+        return convert(roomMessageTextList).stream()
                 .filter(m -> from <= m.getTime())
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
 }
