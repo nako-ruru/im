@@ -7,12 +7,14 @@ import java.util.Map;
  */
 public class ConnectorMessage {
 
+    public final String messageId;
     public final String roomId, userId;
     public final long time;
     public final int level, type;
     public final Map<String, Object> params;
 
-    public ConnectorMessage(String roomId, String userId, int type, Map<String, Object> params, int level) {
+    public ConnectorMessage(String messageId, String roomId, String userId, int type, Map<String, Object> params, int level) {
+        this.messageId = messageId;
         this.roomId = roomId;
         this.userId = userId;
         this.params = params;

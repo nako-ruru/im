@@ -9,12 +9,21 @@ import java.util.Map;
  */
 public class Message {
 
+    private String messageId;
     private String roomId;
     private String userId;
     private long time;
     private String nickname;
     private int type, level;
     private Map<String, Object> params;
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
 
     public String getRoomId() {
         return roomId;

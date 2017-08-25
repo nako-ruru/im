@@ -34,10 +34,10 @@ public class RedisMessageRepository implements MessageRepository {
                 return newEmptyMessages(roomId);
             }
 
-            List<String> roomMessageTextList = resource.lrange(roomId, 0, -1);
-            List<String> worldMessageTextList = resource.lrange("world", 0, -1);
-            List<Message> roomMessageList = convertAndFilter(from, roomMessageTextList);
-            List<Message> worldMessageList = convertAndFilter(from, worldMessageTextList);
+            Collection<String> roomMessageTextList = resource.hgetAll(roomId).values();
+            Collection<String> worldMessageTextList = resource.hgetAll("world").values();
+            Collection<Message> roomMessageList = convertAndFilter(from, roomMessageTextList);
+            Collection<Message> worldMessageList = convertAndFilter(from, worldMessageTextList);
 
             List<Message> values = Stream.of(roomMessageList, worldMessageList)
                     .flatMap(Collection::stream)
@@ -61,27 +61,26 @@ public class RedisMessageRepository implements MessageRepository {
                     .flatMap(jedis -> jedis.keys("*").stream())
                     .collect(Collectors.toSet());
             keys.add("world");
+            
+            ShardedJedisPipeline pipelined = resource.pipelined();
 
             for(String key : keys) {
                 try {
-                    List<String> messageTextList = resource.lrange(key, 0, -1);
-                    List<Message> messageList = convert(messageTextList);
+                    Collection<String> messageTextList = resource.hgetAll(key).values();
+                    Collection<Message> messageList = convert(messageTextList);
 
                     long now = System.currentTimeMillis();
-                    ShardedJedisPipeline pipelined = resource.pipelined();
-                    for(int i = 0; i < messageList.size(); i++) {
-                        Message message = messageList.get(i);
+                    for(Message message : messageList) {
                         if(message.getTime() <= now - TimeUnit.HOURS.toMillis(1)) {
-                            pipelined.lrem(key,  1, messageTextList.get(i));
-                        } else {
-                            break;
+                            pipelined.hdel(key, message.getMessageId());
                         }
                     }
-                    pipelined.sync();
                 } catch (Exception e) {
                     logger.error("", e);
                 }
             }
+                  
+            pipelined.sync();
         }
     }
 
@@ -96,14 +95,14 @@ public class RedisMessageRepository implements MessageRepository {
         return Arrays.asList(message);
     }
 
-    private List<Message> convert(List<String> roomMessageTextList) {
+    private Collection<Message> convert(Collection<String> roomMessageTextList) {
         Gson gson = new Gson();
         return roomMessageTextList.stream()
                 .map(v -> gson.fromJson(v, Message.class))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
-    private List<Message> convertAndFilter(long from, List<String> roomMessageTextList) {
+    private Collection<Message> convertAndFilter(long from, Collection<String> roomMessageTextList) {
         return convert(roomMessageTextList).stream()
                 .filter(m -> from <= m.getTime())
                 .collect(Collectors.toCollection(LinkedList::new));

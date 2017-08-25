@@ -12,7 +12,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     
-    
     <dependencies>
         <dependency>
             <groupId>io.netty</groupId>
@@ -36,6 +35,18 @@
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
             <version>2.9.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_tcp</artifactId>
+            <version>3.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_java</artifactId>
+            <version>3.2</version>
         </dependency>
 
         <dependency>
@@ -111,7 +122,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.mycompany.im.connector.Launcher</mainClass>
+                            <mainClass>com.mycompany.im.util.AsyncClientTest</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -140,7 +151,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.20</version>
                 <configuration>
-                    <skipTests>false</skipTests>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
         </plugins>

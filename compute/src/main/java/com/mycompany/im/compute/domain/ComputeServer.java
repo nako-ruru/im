@@ -55,6 +55,7 @@ public class ComputeServer {
                     jedis.subscribe(new JedisPubSub() {
                         @Override
                         public void onMessage(String channel, String message) {
+                            logger.info(" [x] Received '" + message + "'");
                             try {
                                 if("connector".equals(channel)) {
                                     handleIncomingMessage(message, keywordHandler, pool);
@@ -100,20 +101,20 @@ public class ComputeServer {
         }).start();
 
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("47.92.98.23");
+        factory.setHost("127.0.0.1");
         factory.setUsername("live_stream");
         factory.setPassword("BrightHe0");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
         channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-        System.out.println(" [*] Waiting for messages.");
+        logger.info(" [*] Waiting for messages.");
 
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
-                    throws IOException {
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String message = new String(body, "UTF-8");
+                logger.info(" [x] Received '" + message + "'");
 
                 handleIncomingMessage(message, keywordHandler, pool);
             }
@@ -122,8 +123,6 @@ public class ComputeServer {
     }
 
     private void handleIncomingMessage(String message, KeywordHandler keywordHandler, ShardedJedisPool pool) {
-        logger.info(" [x] Received '" + message + "'");
-
         ConnectorMessage msg = new Gson().fromJson(message, ConnectorMessage.class);
         if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
             String oldContent = (String) msg.params.get("content");
@@ -134,7 +133,7 @@ public class ComputeServer {
                 newMessage = new Gson().toJson(msg);
             }
             try(ShardedJedis shardedJedis = pool.getResource()) {
-                shardedJedis.rpush(msg.roomId, newMessage);
+                shardedJedis.hset(msg.roomId, msg.messageId, newMessage);
             }
         }
     }

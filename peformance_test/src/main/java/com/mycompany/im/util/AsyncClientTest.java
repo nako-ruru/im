@@ -12,6 +12,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Administrator on 2017/8/7.
@@ -19,19 +20,19 @@ import java.util.concurrent.ScheduledExecutorService;
 public class AsyncClientTest {
 
     public static void main(String[] args) throws Exception {
-        int clientCount = 2;
+        int clientCount = 1;
         long interval = 1000L;
-         String address = "localhost:6000";
-//      String address = "47.92.98.23:6000";
+        String address = "localhost:6000";
+ //      String address = "47.92.98.23:6000";
 
         if(args.length >= 1) {
             clientCount = Integer.parseInt(args[0]);
         }
         if(args.length >= 2) {
-            interval = Long.parseLong(args[1]);
+            address = args[1];
         }
         if(args.length >= 3) {
-            address = args[2];
+            interval = Long.parseLong(args[2]);
         }
 
         int colonIndex = address.indexOf(":");
@@ -47,7 +48,7 @@ public class AsyncClientTest {
         long finalInterval = interval;
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 2);
-        Executor executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+        Executor executor = Executors.newCachedThreadPool();
 
         EventLoopGroup workerGroup = new NioEventLoopGroup(0, executor);
 
@@ -67,6 +68,10 @@ public class AsyncClientTest {
 
                 // Start the client.
                 ChannelFuture f = b.connect(host, port).sync(); // (5)
+
+                if((i + 1) % 100 == 0) {
+                    TimeUnit.MILLISECONDS.sleep(200L);
+                }
 
                 // Wait until the connection is closed.
 //                f.channel().closeFuture().sync();

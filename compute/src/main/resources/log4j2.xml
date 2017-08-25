@@ -45,12 +45,6 @@
             <AppenderRef ref="ERROR_FILE" level="ERROR"/>
         </logger>
 
-        <logger name="org.apache.spark" level="WARN" additivity="false">
-            <AppenderRef ref="FILE"/>
-            <AppenderRef ref="CONSOLE"/>
-            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
-        </logger>
-
         <Root includeLocation="true" level="INFO">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>

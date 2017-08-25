@@ -19,7 +19,7 @@ public class ConnectorMessageTest {
         //通过修改roomId和userId来测试消息通过与否
         while (true) {
             ConnectorMessage msg = new ConnectorMessage(
-                    "room002",
+                    null, "room002",
                     "user001",
                     1,
                     ImmutableMap.of("content", UUID.randomUUID().toString()),
