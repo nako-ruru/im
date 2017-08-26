@@ -23,7 +23,7 @@ public class MessagePollTest {
             setRoomId("12");
             setFrom(1);
         }};
-        List<MessageResult> messages = messageController.findByRoomIdAndGreaterThan(parameter);
+        List<MessageResult> messages = messageController.findByRoomIdAndFromGreaterThan(parameter);
         System.out.println(messages);
     }
 

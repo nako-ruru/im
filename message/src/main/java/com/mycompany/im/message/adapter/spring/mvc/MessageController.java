@@ -22,8 +22,8 @@ public class MessageController {
     private MessageQuery messageQuery;
     
     @RequestMapping(value = "a", method = RequestMethod.GET)
-    public List<MessageResult> findByRoomIdAndGreaterThan(MessageParameter parameter) {
-        return messageQuery.findByRoomIdAndGreaterThan(parameter);
+    public List<MessageResult> findByRoomIdAndFromGreaterThan(MessageParameter parameter) {
+        return messageQuery.findByRoomIdAndFromGreaterThan(parameter);
     }
 
 }
