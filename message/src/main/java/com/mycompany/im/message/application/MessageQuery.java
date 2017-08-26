@@ -18,7 +18,7 @@ public class MessageQuery {
     private MessageRepository messageRepository;
 
     public List<MessageResult> findByRoomIdAndGreaterThan(MessageParameter parameter) {
-        List<Message> messages = messageRepository.findByRoomIdAndGreaterThan(parameter.getRoomId(), parameter.getFrom());
+        List<Message> messages = messageRepository.findByRoomIdAndFromGreaterThan(parameter.getRoomId(), parameter.getFrom());
         return messages.stream()
                 .map(MessageQuery::convert)
                 .collect(Collectors.toList());

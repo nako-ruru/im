@@ -7,7 +7,7 @@ import java.util.List;
  */
 public interface MessageRepository {
 
-    List<Message> findByRoomIdAndGreaterThan(String roomId, long from);
+    List<Message> findByRoomIdAndFromGreaterThan(String roomId, long from);
 
     void purge();
 

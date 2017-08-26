@@ -19,3 +19,5 @@
 /logs
 /message/message.error
 /message/message.log
+/performance_test/.idea
+/performance_test/target

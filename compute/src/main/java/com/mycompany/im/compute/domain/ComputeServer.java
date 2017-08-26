@@ -30,8 +30,8 @@ public class ComputeServer {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Multimap<String, String> silencedList = Multimaps.newMultimap(new ConcurrentHashMap<>(), () -> Collections.newSetFromMap(new ConcurrentHashMap<>()));
-    private Multimap<String, String> kickedList = Multimaps.newMultimap(new ConcurrentHashMap<>(), () -> Collections.newSetFromMap(new ConcurrentHashMap<>()));
+    private final Multimap<String, String> silencedList = newConcurrentHashMultimap();
+    private final Multimap<String, String> kickedList = newConcurrentHashMultimap();
 
 
     public void start() throws Exception {
@@ -133,8 +133,13 @@ public class ComputeServer {
                 newMessage = new Gson().toJson(msg);
             }
             try(ShardedJedis shardedJedis = pool.getResource()) {
-                shardedJedis.hset(msg.roomId, msg.messageId, newMessage);
+                shardedJedis.zadd(msg.roomId, msg.time, newMessage);
             }
         }
     }
+    
+    private static <K, V> Multimap<K, V> newConcurrentHashMultimap() {
+        return Multimaps.newMultimap(new ConcurrentHashMap<>(), () -> Collections.newSetFromMap(new ConcurrentHashMap<>()));
+    }
+    
 }
