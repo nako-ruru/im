@@ -45,20 +45,22 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         register(ctx.channel(), userId);
-        scheduledExecutorService.scheduleWithFixedDelay(() -> {
-            ThreadLocalRandom random = ThreadLocalRandom.current();
-            String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
-            int level = random.nextInt(1, 100);
-            String nickname = UUID.randomUUID().toString();
-            String content = WORDS[random.nextInt(WORDS.length)];
+        if(interval > 0) {
+            scheduledExecutorService.scheduleWithFixedDelay(() -> {
+                ThreadLocalRandom random = ThreadLocalRandom.current();
+                String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
+                int level = random.nextInt(1, 100);
+                String nickname = UUID.randomUUID().toString();
+                String content = WORDS[random.nextInt(WORDS.length)];
 
-            try {
-                chat(ctx.channel(), roomId, content, nickname, level);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                try {
+                    chat(ctx.channel(), roomId, content, nickname, level);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-        }, interval, interval, TimeUnit.MILLISECONDS);
+            }, interval, interval, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
@@ -72,8 +74,8 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
 
     public static void register(Channel out, String userId) throws IOException {
         Map<String, Object> params = map(
-                "UserId", userId,
-                "Pass", ""
+                "userId", userId,
+                "pass", ""
         );
         writeMsg(out, params, 0);
     }

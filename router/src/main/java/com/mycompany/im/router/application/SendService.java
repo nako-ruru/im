@@ -31,7 +31,7 @@ public class SendService {
         Message message = new Message(command.getRoomId(), command.getModuleId(), 20000, ImmutableMap.of("content", command.getContent()), 0);
         try (ShardedJedis jedis = pool.getResource()) {
             ShardedJedisPipeline pipelined = jedis.pipelined();
-            pipelined.rpush(message.roomId, new Gson().toJson(message));
+            pipelined.zadd(message.roomId, message.time, new Gson().toJson(message));
             pipelined.sync();
         }
     }
