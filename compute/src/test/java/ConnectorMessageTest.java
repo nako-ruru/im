@@ -25,8 +25,8 @@ public class ConnectorMessageTest {
                     ImmutableMap.of("content", UUID.randomUUID().toString()),
                     ThreadLocalRandom.current().nextInt(1, 100)
             );
-            jedis.publish("connector", new Gson().toJson(msg));
-            Thread.sleep(ThreadLocalRandom.current().nextLong(1000L, 3000L));
+            jedis.rpush("connector", new Gson().toJson(msg));
+            Thread.sleep(1000L);
         }
     }
 

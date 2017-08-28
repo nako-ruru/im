@@ -1,12 +1,10 @@
-import org.junit.Test;
 
 /**
  * Created by Administrator on 2017/6/17.
  */
 public class AsciiTest {
 
-    @Test
-    public void a() {
+    public static void main(String... args) {
         byte[] bytes = {
                 123,
                 34,

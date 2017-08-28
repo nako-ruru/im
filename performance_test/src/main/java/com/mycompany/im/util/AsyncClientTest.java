@@ -69,9 +69,10 @@ public class AsyncClientTest {
                 // Start the client.
                 ChannelFuture f = b.connect(host, port).sync(); // (5)
 
+                /*
                 if((i + 1) % 100 == 0) {
                     TimeUnit.MILLISECONDS.sleep(200L);
-                }
+                }*/
 
                 // Wait until the connection is closed.
 //                f.channel().closeFuture().sync();

@@ -18,6 +18,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,19 +49,46 @@ public class ComputeServer {
 
         ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
 
+        
         new Thread(() -> {
             do {
                 try {
-                    Jedis jedis = JedisPoolUtils.jedis();
+                    ShardedJedis jedis = JedisPoolUtils.shardedJedisPool().getResource();
+                    while(true) {
+                        List<String> messages = jedis.blpop(0, "connector");
+                        for(int i = 1; i < messages.size(); i += 2) {
+                            String message = messages.get(i);
+                            try {
+                                logger.info(" [x] Received '" + message + "'");
+                                handleIncomingMessage(message, keywordHandler, pool);
+                            } catch (Exception e) {
+                                logger.error("", e);
+                            }
+                        }
+                    }
+                } catch (JedisConnectionException e) {
+                    logger.error("", e);
+                    if(e.getCause() != null && e.getCause() instanceof SocketException) {
+                        if("Connection reset".equals(e.getCause().getMessage())) {
+                            continue;
+                        }
+                    }
+                    break;
+                }
+            } while (true);
+        }).start();
+        
+        new Thread(() -> {
+            Jedis jedis = new Jedis("localhost", 9921);
+            jedis.auth("BrightHe0");
+            do {
+                try {
                     jedis.subscribe(new JedisPubSub() {
                         @Override
                         public void onMessage(String channel, String message) {
                             logger.info(" [x] Received '" + message + "'");
                             try {
-                                if("connector".equals(channel)) {
-                                    handleIncomingMessage(message, keywordHandler, pool);
-                                }
-                                else if("room_manage_channel".equals(channel)) {
+                                if("room_manage_channel".equals(channel)) {
                                     RoomManagementMessage msg = new Gson().fromJson(message, RoomManagementMessage.class);
                                     if("silence".equals(msg.getType())) {
                                         Payload payload = msg.getPayload();
@@ -101,6 +129,7 @@ public class ComputeServer {
         }).start();
 
         ConnectionFactory factory = new ConnectionFactory();
+//        factory.setHost("47.92.98.23");
         factory.setHost("127.0.0.1");
         factory.setUsername("live_stream");
         factory.setPassword("BrightHe0");
