@@ -1,3 +1,5 @@
+package redismq;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.compute.domain.ConnectorMessage;
@@ -9,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Created by Administrator on 2017/5/28.
  */
-public class ConnectorMessageTest {
+public class RedisProducer {
 
     public static void main(String[] args) throws InterruptedException {
 

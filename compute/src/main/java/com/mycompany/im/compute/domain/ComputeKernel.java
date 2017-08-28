@@ -4,79 +4,45 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
 import com.mycompany.im.util.JedisPoolUtils;
-import com.rabbitmq.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-import java.io.IOException;
+import javax.annotation.Resource;
 import java.net.SocketException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 该类订阅从connector发来的某玩家消息，并判断该玩家是否被禁言或踢掉，如果没有则存储到redis里
  */
-public class ComputeServer {
-
-    private final static String QUEUE_NAME = "connector";
+@Component
+public class ComputeKernel {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Multimap<String, String> silencedList = newConcurrentHashMultimap();
     private final Multimap<String, String> kickedList = newConcurrentHashMultimap();
 
+    private ShardedJedisPool pool;
 
-    public void start() throws Exception {
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-                "framework.xml", "performance-monitor.xml"
-        );
+    @Resource
+    private KeywordHandler keywordHandler;
+    @Resource
+    private RoomManagementQuery roomManagementQuery;
 
-        RoomManagementQuery roomManagementQuery = applicationContext.getBean(RoomManagementQuery.class);
+    public void start() {
         RoomManagementQuery.RoomManagementInfo roomManagementInfo = roomManagementQuery.query();
         silencedList.putAll(roomManagementInfo.getSilenceList());
         kickedList.putAll(roomManagementInfo.getKickList());
 
-        KeywordHandler keywordHandler = applicationContext.getBean(KeywordHandler.class);
-
-        ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
-
-        
-        new Thread(() -> {
-            do {
-                try {
-                    ShardedJedis jedis = JedisPoolUtils.shardedJedisPool().getResource();
-                    while(true) {
-                        List<String> messages = jedis.blpop(0, "connector");
-                        for(int i = 1; i < messages.size(); i += 2) {
-                            String message = messages.get(i);
-                            try {
-                                logger.info(" [x] Received '" + message + "'");
-                                handleIncomingMessage(message, keywordHandler, pool);
-                            } catch (Exception e) {
-                                logger.error("", e);
-                            }
-                        }
-                    }
-                } catch (JedisConnectionException e) {
-                    logger.error("", e);
-                    if(e.getCause() != null && e.getCause() instanceof SocketException) {
-                        if("Connection reset".equals(e.getCause().getMessage())) {
-                            continue;
-                        }
-                    }
-                    break;
-                }
-            } while (true);
-        }).start();
+        pool = JedisPoolUtils.shardedJedisPool();
         
         new Thread(() -> {
             Jedis jedis = new Jedis("localhost", 9921);
@@ -127,28 +93,10 @@ public class ComputeServer {
                 }
             } while (true);
         }).start();
+    }
 
-        ConnectionFactory factory = new ConnectionFactory();
-//        factory.setHost("47.92.98.23");
-        factory.setHost("127.0.0.1");
-        factory.setUsername("live_stream");
-        factory.setPassword("BrightHe0");
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
-
-        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-        logger.info(" [*] Waiting for messages.");
-
-        Consumer consumer = new DefaultConsumer(channel) {
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                String message = new String(body, "UTF-8");
-                logger.info(" [x] Received '" + message + "'");
-
-                handleIncomingMessage(message, keywordHandler, pool);
-            }
-        };
-        channel.basicConsume(QUEUE_NAME, true, consumer);
+    public void compute(String message) {
+        handleIncomingMessage(message, keywordHandler, pool);
     }
 
     private void handleIncomingMessage(String message, KeywordHandler keywordHandler, ShardedJedisPool pool) {

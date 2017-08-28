@@ -1,25 +1,35 @@
-package kafka;
+package com.mycompany.im.compute.adapter.mq;
 
+import com.mycompany.im.compute.application.ComputeService;
+import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 /**
- * Create by fengtang
- * 2015/10/8 0008
- * KafkaDemo_01
+ * Created by Administrator on 2017/8/28.
  */
+@Component
 public class KafkaConsumer {
-    private final ConsumerConnector consumer;
-    private KafkaConsumer() {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Resource
+    private ComputeService computeService;
+
+    public void start() {
         Properties props = new Properties();
         /**
          * zookeeper 配置
@@ -43,23 +53,27 @@ public class KafkaConsumer {
          */
         props.put("serializer.class", "kafka.serializer.StringEncoder");
         ConsumerConfig config = new ConsumerConfig(props);
-        consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);
-    }
+        ConsumerConnector connector = Consumer.createJavaConsumerConnector(config);
 
-    void consume() {
+
         Map<String, Integer> topicCountMap = new HashMap<>();
-        topicCountMap.put(KafkaProducer.TOPIC, new Integer(1));
+        topicCountMap.put("connector", new Integer(1));
         StringDecoder keyDecoder = new StringDecoder(new VerifiableProperties());
         StringDecoder valueDecoder = new StringDecoder(new VerifiableProperties());
-        Map<String, List<KafkaStream<String, String>>> consumerMap = 
-                consumer.createMessageStreams(topicCountMap, keyDecoder, valueDecoder);
-        KafkaStream<String, String> stream = consumerMap.get(KafkaProducer.TOPIC).get(0);
+        Map<String, List<KafkaStream<String, String>>> consumerMap = connector.createMessageStreams(topicCountMap, keyDecoder, valueDecoder);
+        KafkaStream<String, String> stream = consumerMap.get("connector").get(0);
         ConsumerIterator<String, String> it = stream.iterator();
-        while (it.hasNext())
-            System.out.println(it.next().message());
+        new Thread(() -> {
+            while (it.hasNext()) {
+                try {
+                    String message = it.next().message();
+                    logger.info(" [x] Received '" + message + "'");
+                    computeService.compute(message);
+                } catch (Exception e) {
+                    logger.error("", e);
+                }
+            }
+        }, "kafka-consumer").start();
     }
 
-    public static void main(String[] args) {
-        new KafkaConsumer().consume();
-    }
 }
