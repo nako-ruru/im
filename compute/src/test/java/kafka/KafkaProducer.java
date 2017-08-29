@@ -12,8 +12,10 @@ import java.util.Properties;
  * KafkaDemo_01
  */
 public class KafkaProducer {
+    
+    public final static String TOPIC = KafkaConsumer.TOPIC;
+    
     private final Producer<String, String> producer;
-    public final static String TOPIC = "connector";
     private KafkaProducer() {
         Properties props = new Properties();
         /**

@@ -47,6 +47,7 @@ public class ClientBytesTest {
         public int level;
         public String content;
 
+        @Override
         public String toString() {
             return new Gson().toJson(this);
         }

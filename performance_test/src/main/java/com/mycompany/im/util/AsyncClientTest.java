@@ -12,7 +12,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Administrator on 2017/8/7.

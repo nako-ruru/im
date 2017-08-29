@@ -8,11 +8,11 @@
 
     <Appenders>
         <RollingRandomAccessFile name="FILE" fileName="message.log" filePattern="message-%i.log">
-            <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c] %m%n"/>
+            <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
             <SizeBasedTriggeringPolicy size="10 MB" />
         </RollingRandomAccessFile>
         <Console name="CONSOLE" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1}] %m%n"/>
+            <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
         </Console>
         <Async name="ASYNC">
             <AppenderRef ref="FILE"/>
@@ -21,7 +21,7 @@
         </Async>
 
         <RollingRandomAccessFile name="ERROR_FILE" fileName="message.error" filePattern="message-%d{yyyy-MM-dd}-%i.error">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t] [%c] %m%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10 MB" />
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>

@@ -17,6 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Created by Administrator on 2017/8/28.
@@ -25,6 +28,8 @@ import java.util.Properties;
 public class KafkaConsumer {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    
+    private static final String TOPIC = "connector";
 
     @Resource
     private ComputeService computeService;
@@ -34,7 +39,7 @@ public class KafkaConsumer {
         /**
          * zookeeper 配置
          */
-        props.put("zookeeper.connect", "47.92.98.23:2181");
+        props.put("zookeeper.connect", "172.26.7.220:2181");
 
         /**
          * group 代表一个消费组
@@ -55,25 +60,29 @@ public class KafkaConsumer {
         ConsumerConfig config = new ConsumerConfig(props);
         ConsumerConnector connector = Consumer.createJavaConsumerConnector(config);
 
-
+        int threadCount = 1;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount, new CustomizableThreadFactory("kafka-consumer"));
+        
         Map<String, Integer> topicCountMap = new HashMap<>();
-        topicCountMap.put("connector", new Integer(1));
+        topicCountMap.put(TOPIC, threadCount);
         StringDecoder keyDecoder = new StringDecoder(new VerifiableProperties());
         StringDecoder valueDecoder = new StringDecoder(new VerifiableProperties());
         Map<String, List<KafkaStream<String, String>>> consumerMap = connector.createMessageStreams(topicCountMap, keyDecoder, valueDecoder);
-        KafkaStream<String, String> stream = consumerMap.get("connector").get(0);
-        ConsumerIterator<String, String> it = stream.iterator();
-        new Thread(() -> {
-            while (it.hasNext()) {
-                try {
-                    String message = it.next().message();
-                    logger.info(" [x] Received '" + message + "'");
-                    computeService.compute(message);
-                } catch (Exception e) {
-                    logger.error("", e);
+        List<KafkaStream<String, String>> streams = consumerMap.get(TOPIC);
+        for(KafkaStream<String, String> stream : streams) {
+            executor.submit(() -> {
+                ConsumerIterator<String, String> it = stream.iterator();
+                while (it.hasNext()) {
+                    try {
+                        String message = it.next().message();
+                        logger.info(" [x] Received '" + message + "'");
+                        computeService.compute(message);
+                    } catch (Exception e) {
+                        logger.error("", e);
+                    }
                 }
-            }
-        }, "kafka-consumer").start();
+            });
+        }
     }
 
 }

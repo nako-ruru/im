@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Create by fengtang
@@ -18,6 +21,8 @@ import java.util.Properties;
  * KafkaDemo_01
  */
 public class KafkaConsumer {
+    public final static String TOPIC = "testweixuan";
+    
     private final ConsumerConnector consumer;
     private KafkaConsumer() {
         Properties props = new Properties();
@@ -47,16 +52,24 @@ public class KafkaConsumer {
     }
 
     void consume() {
+        int threadCount = 1;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount, new CustomizableThreadFactory("kafka-consumer"));
+        
         Map<String, Integer> topicCountMap = new HashMap<>();
-        topicCountMap.put(KafkaProducer.TOPIC, new Integer(1));
+        topicCountMap.put(TOPIC, threadCount);
         StringDecoder keyDecoder = new StringDecoder(new VerifiableProperties());
         StringDecoder valueDecoder = new StringDecoder(new VerifiableProperties());
-        Map<String, List<KafkaStream<String, String>>> consumerMap = 
-                consumer.createMessageStreams(topicCountMap, keyDecoder, valueDecoder);
-        KafkaStream<String, String> stream = consumerMap.get(KafkaProducer.TOPIC).get(0);
-        ConsumerIterator<String, String> it = stream.iterator();
-        while (it.hasNext())
-            System.out.println(it.next().message());
+        Map<String, List<KafkaStream<String, String>>> consumerMap = consumer.createMessageStreams(topicCountMap, keyDecoder, valueDecoder);
+        List<KafkaStream<String, String>> streams = consumerMap.get(TOPIC);
+        for(KafkaStream<String, String> stream : streams) {
+            executor.submit(() -> {
+                ConsumerIterator<String, String> it = stream.iterator();
+                while (it.hasNext()) {
+                    String message = it.next().message();
+                    System.out.println(it.next().message());
+                }
+            });
+        }
     }
 
     public static void main(String[] args) {
