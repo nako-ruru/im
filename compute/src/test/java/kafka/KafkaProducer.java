@@ -13,7 +13,7 @@ import java.util.Properties;
  */
 public class KafkaProducer {
     
-    public final static String TOPIC = KafkaConsumer.TOPIC;
+    public final static String TOPIC = KafkaConsumerTest.TOPIC;
     
     private final Producer<String, String> producer;
     private KafkaProducer() {
