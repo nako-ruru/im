@@ -10,6 +10,7 @@ import com.mycompany.im.compute.application.ComputeService;
  */
 public class KafkaConsumerTest {
     public final static String TOPIC = "testweixuan";
+    public static final String BOOTSTRAP_SERVERS = "47.92.98.23:9092";
 
     public static void main(String[] args) {
         KafkaRecv consumer = new KafkaRecv();
@@ -19,7 +20,7 @@ public class KafkaConsumerTest {
                 //do nothing
             }
         });
-        consumer.setBootstrapServers("47.92.98.23:9092");
+        consumer.setBootstrapServers(BOOTSTRAP_SERVERS);
         consumer.setTopic(TOPIC);
         consumer.start();
     }

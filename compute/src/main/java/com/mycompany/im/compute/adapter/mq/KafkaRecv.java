@@ -1,18 +1,18 @@
 package com.mycompany.im.compute.adapter.mq;
 
 import com.mycompany.im.compute.application.ComputeService;
-import java.util.Arrays;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.errors.WakeupException;
 
 /**
  * Created by Administrator on 2017/8/28.
@@ -52,21 +52,13 @@ public class KafkaRecv {
     }
 
     private class KafkaConsumerRunner implements Runnable {
-        
+
         private KafkaConsumer<String, String> consumer;
 
         @Override
         public void run() {
             try {
-                Properties props = new Properties();
-                props.put("bootstrap.servers", bootstrapServers);
-                props.put("group.id", "jd-group");
-                props.put("enable.auto.commit", "true");
-                props.put("auto.commit.interval.ms", "1000");
-                props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-                props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-
-                consumer = new KafkaConsumer<>(props);
+                consumer = createKafkaConsumer();
                 consumer.subscribe(Arrays.asList(topic));
                 while (!closed.get()) {
                     ConsumerRecords<String, String> records = consumer.poll(2000);
@@ -95,6 +87,18 @@ public class KafkaRecv {
         public void shutdown() {
             consumer.wakeup();
         }
+    }
+
+    private KafkaConsumer<String, String> createKafkaConsumer() {
+        Properties props = new Properties();
+        props.put("bootstrap.servers", bootstrapServers);
+        props.put("group.id", "jd-group");
+        props.put("enable.auto.commit", "true");
+        props.put("auto.commit.interval.ms", "1000");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+
+        return new KafkaConsumer<>(props);
     }
     
 }

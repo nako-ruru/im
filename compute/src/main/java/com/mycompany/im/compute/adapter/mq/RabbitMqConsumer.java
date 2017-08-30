@@ -36,7 +36,7 @@ public class RabbitMqConsumer {
     private void run() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
 //        factory.setHost("47.92.98.23");
-        factory.setHost("127.0.0.1");
+        factory.setHost("172.26.7.220");
         factory.setUsername("live_stream");
         factory.setPassword("BrightHe0");
         Connection connection = factory.newConnection();

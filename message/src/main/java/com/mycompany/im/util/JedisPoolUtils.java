@@ -1,13 +1,14 @@
 package com.mycompany.im.util;
 
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisShardInfo;
-import redis.clients.jedis.ShardedJedisPool;
-
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisShardInfo;
+import redis.clients.jedis.ShardedJedisPool;
+
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -35,25 +36,33 @@ public class JedisPoolUtils {
     }
 
     private static List<JedisShardInfo> readJedisShardInfos() {
+        Properties properties = properties();
+        
+        String serverInfoText = properties.getProperty("redis");
+        List<JedisShardInfo> jedisShardInfos = Stream.of(serverInfoText.split("[;,]"))
+            .map(element -> element.split(":"))
+            .map((String[] info) -> {
+                JedisShardInfo jedisShardInfo = new JedisShardInfo(info[0].trim(), info.length >= 2 ? Integer.parseInt(info[1].trim()): 6379);
+                if(info.length >= 3) {
+                    jedisShardInfo.setPassword(info[2].trim());
+                }
+                return jedisShardInfo;
+            })
+            .collect(Collectors.toList());
+        return jedisShardInfos;
+    }
+
+    private static Properties properties() {
         Properties properties = new Properties();
         try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/redis_pool.properties"), StandardCharsets.UTF_8)) {
             properties.load(in);
-            String serverInfoText = properties.getProperty("redis");
-            List<JedisShardInfo> jedisShardInfos = Stream.of(serverInfoText.split("[;,]"))
-                    .map(element -> element.split(":"))
-                    .map((String[] info) -> {
-                        JedisShardInfo jedisShardInfo = new JedisShardInfo(info[0].trim(), info.length >= 2 ? Integer.parseInt(info[1].trim()): 6379);
-                        if(info.length >= 3) {
-                            jedisShardInfo.setPassword(info[2].trim());
-                        }
-                        return jedisShardInfo;
-                    })
-                    .collect(Collectors.toList());
-            return jedisShardInfos;
         } catch (IOException e) {
-            throw new Error(e);
         }
-
+        try (Reader in = new InputStreamReader(new FileInputStream("/opt/config/message/redis_pool.properties"), StandardCharsets.UTF_8)) {
+            properties.load(in);
+        } catch (IOException e) {
+        }
+        return properties;
     }
 
 }

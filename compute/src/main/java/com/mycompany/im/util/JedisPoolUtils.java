@@ -2,6 +2,7 @@ package com.mycompany.im.util;
 
 import redis.clients.jedis.*;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -59,46 +60,49 @@ public class JedisPoolUtils {
     }
 
     private static Set<HostPortPassword> readHostPortPasswords() {
-        Properties properties = new Properties();
-        try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/redis_pool.properties"), StandardCharsets.UTF_8)) {
-            properties.load(in);
-            String serverInfoText = properties.getProperty("redis");
-            Set<HostPortPassword> hostAndPorts = Stream.of(serverInfoText.split("[;,]"))
-                    .map(element -> element.split(":"))
-                    .map((String[] info) -> new HostPortPassword(
-                                info[0].trim(),
-                                info.length >= 2 ? Integer.parseInt(info[1].trim()) : 6379,
-                                info.length >= 3 ? info[2].trim() : null
-                        )
+        Properties properties = properties();
+        
+        String serverInfoText = properties.getProperty("redis");
+        Set<HostPortPassword> hostAndPorts = Stream.of(serverInfoText.split("[;,]"))
+                .map(element -> element.split(":"))
+                .map((String[] info) -> new HostPortPassword(
+                            info[0].trim(),
+                            info.length >= 2 ? Integer.parseInt(info[1].trim()) : 6379,
+                            info.length >= 3 ? info[2].trim() : null
                     )
-                    .collect(Collectors.toSet());
-            return hostAndPorts;
-        } catch (IOException e) {
-            throw new Error(e);
-        }
-
+                )
+                .collect(Collectors.toSet());
+        return hostAndPorts;
     }
 
     private static List<JedisShardInfo> readJedisShardInfos() {
+        Properties properties = properties();
+        
+        String serverInfoText = properties.getProperty("redis");
+        List<JedisShardInfo> jedisShardInfos = Stream.of(serverInfoText.split("[;,]"))
+            .map(element -> element.split(":"))
+            .map((String[] info) -> {
+                JedisShardInfo jedisShardInfo = new JedisShardInfo(info[0].trim(), info.length >= 2 ? Integer.parseInt(info[1].trim()): 6379);
+                if(info.length >= 3) {
+                    jedisShardInfo.setPassword(info[2].trim());
+                }
+                return jedisShardInfo;
+            })
+            .collect(Collectors.toList());
+        return jedisShardInfos;
+    }
+
+    private static Properties properties() {
         Properties properties = new Properties();
         try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/redis_pool.properties"), StandardCharsets.UTF_8)) {
             properties.load(in);
-            String serverInfoText = properties.getProperty("redis");
-            List<JedisShardInfo> jedisShardInfos = Stream.of(serverInfoText.split("[;,]"))
-                    .map(element -> element.split(":"))
-                    .map((String[] info) -> {
-                        JedisShardInfo jedisShardInfo = new JedisShardInfo(info[0].trim(), info.length >= 2 ? Integer.parseInt(info[1].trim()): 6379);
-                        if(info.length >= 3) {
-                            jedisShardInfo.setPassword(info[2].trim());
-                        }
-                        return jedisShardInfo;
-                    })
-                    .collect(Collectors.toList());
-            return jedisShardInfos;
         } catch (IOException e) {
-            throw new Error(e);
         }
-
+        try (Reader in = new InputStreamReader(new FileInputStream("/opt/im_compute/config/redis_pool.properties"), StandardCharsets.UTF_8)) {
+            properties.load(in);
+        } catch (IOException e) {
+        }
+        return properties;
     }
     
     private static class HostPortPassword {

@@ -65,7 +65,7 @@ public class RedisMessageRepository implements MessageRepository {
             
             ShardedJedisPipeline pipelined = resource.pipelined();
 
-            long end = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1);
+            long end = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(5);
             for(String key : keys) {
                 try {
                     pipelined.zremrangeByScore(key, 0, end);

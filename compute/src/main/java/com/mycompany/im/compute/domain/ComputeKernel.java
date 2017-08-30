@@ -45,8 +45,7 @@ public class ComputeKernel {
         pool = JedisPoolUtils.shardedJedisPool();
         
         new Thread(() -> {
-            Jedis jedis = new Jedis("localhost", 9921);
-            jedis.auth("BrightHe0");
+            Jedis jedis = JedisPoolUtils.jedis();
             do {
                 try {
                     jedis.subscribe(new JedisPubSub() {
