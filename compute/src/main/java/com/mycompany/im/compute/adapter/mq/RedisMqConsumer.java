@@ -50,7 +50,7 @@ public class RedisMqConsumer {
                     break;
                 }
             } while (true);
-        }, "redis-mq-consumer").start();
+        }, "redismq-consumer").start();
     }
 
 }

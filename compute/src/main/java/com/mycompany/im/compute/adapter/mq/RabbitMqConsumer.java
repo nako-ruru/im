@@ -30,7 +30,7 @@ public class RabbitMqConsumer {
             } catch (IOException | TimeoutException e) {
                 logger.error("", e);
             }
-        }, "rabbit-mq-consumer").start();
+        }, "rabbitmq-consumer").start();
     }
 
     private void run() throws IOException, TimeoutException {
