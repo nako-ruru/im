@@ -2,11 +2,9 @@ package com.mycompany.im.connector;
 
 import com.google.gson.Gson;
 
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +12,8 @@ import java.util.Map;
  * Created by Administrator on 2017/6/5.
  */
 public class MessageUtils {
+
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
 
     /**
      * 对当前{@link java.net.Socket}连接注册userId。该方法在每次连接后调用且仅调用一次
@@ -38,26 +38,37 @@ public class MessageUtils {
      * @param consumer
      * @param eConsumer
      */
-    public static void pushCallback(DataInputStream in, Consumer<Msg> consumer, Consumer<IOException> eConsumer){
-        Thread t = new Thread(() -> {
-            try {
-                while(true) {
-                    int length = in.readInt();
-                    int type = in.readInt();
-                    if(type == 30000) {
-                        byte[] bytes = new byte[length - 4];
-                        in.read(bytes);
-                        String jsonText = new String(bytes, StandardCharsets.UTF_8);
-                        Msg msg = new Gson().fromJson(jsonText, Msg.class);
-                        if(consumer != null) {
-                            consumer.accept(msg);
+    public static void pushCallback(DataInputStream in, Consumer<Msg> consumer, Consumer<Exception> eConsumer){
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        int length = in.readInt();
+                        int type = in.readInt();
+                        if (type == 30000) {
+                            int contentLength = length - 4;
+                            byte[] bytes = new byte[contentLength];
+                            int read = 0;
+                            while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
+                            }
+                            String jsonText = new String(bytes, 0, contentLength, UTF_8);
+                            try {
+                                Msg msg = new Gson().fromJson(jsonText, Msg.class);
+                                if (consumer != null) {
+                                    consumer.accept(msg);
+                                }
+                            } catch (Exception e) {
+                                if (eConsumer != null) {
+                                    eConsumer.accept(e);
+                                }
+                            }
                         }
                     }
-                }
-            }
-            catch (IOException e) {
-                if(eConsumer != null) {
-                    eConsumer.accept(e);
+                } catch (IOException e) {
+                    if (eConsumer != null) {
+                        eConsumer.accept(e);
+                    }
                 }
             }
         });
@@ -82,12 +93,19 @@ public class MessageUtils {
         writeMsg(out, params, 1);
     }
 
-    private static void writeMsg(DataOutput out, Object o, int type) throws IOException {
+    static byte[] createMsg(Object o, int type) throws IOException {
         String json = json(o);
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = json.getBytes(UTF_8);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(4 + 4 + bytes.length);
+        DataOutputStream out = new DataOutputStream(baos);
         out.writeInt(4 + bytes.length);
         out.writeInt(type);
         out.write(bytes);
+        return baos.toByteArray();
+    }
+
+    private static void writeMsg(DataOutput out, Object o, int type) throws IOException {
+        out.write(createMsg(o, type));
     }
 
     public static class Msg {
