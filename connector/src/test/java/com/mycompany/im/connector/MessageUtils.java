@@ -19,15 +19,16 @@ public class MessageUtils {
      * 对当前{@link java.net.Socket}连接注册userId。该方法在每次连接后调用且仅调用一次
      * @param out
      * @param userId
+     * @param roomId
      * @throws IOException
      *
      * @see Socket#getOutputStream()
      * @see java.io.DataOutputStream#DataOutputStream(java.io.OutputStream)
      */
-    public static void register(DataOutput out, String userId) throws IOException {
+    public static void register(DataOutput out, String userId, String roomId) throws IOException {
         Map<String, Object> params = map(
-                "UserId", userId,
-                "Pass", ""
+                "userId", userId,
+                "roomId", roomId
         );
         writeMsg(out, params, 0);
     }
@@ -109,13 +110,20 @@ public class MessageUtils {
     }
 
     public static class Msg {
-        private String userId, moduleId, content;
+        private String userId, roomId, moduleId, content;
 
         public String getUserId() {
             return userId;
         }
         public void setUserId(String userId) {
             this.userId = userId;
+        }
+
+        public String getRoomId() {
+            return roomId;
+        }
+        public void setRoomId(String roomId) {
+            this.roomId = roomId;
         }
 
         public String getModuleId() {

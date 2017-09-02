@@ -72,11 +72,12 @@ public class ClientTest {
                         Exception::printStackTrace
                 );
 
-                MessageUtils.register(out, userId);
+                String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
+
+                MessageUtils.register(out, userId, roomId);
                 out.flush();
 
                 while(true) {
-                    String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
                     int level = random.nextInt(1, 100);
                     String nickname = UUID.randomUUID().toString();
                     writeRandomMessage(out, roomId, nickname, level);

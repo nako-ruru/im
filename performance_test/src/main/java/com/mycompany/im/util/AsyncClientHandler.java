@@ -44,11 +44,11 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        register(ctx.channel(), userId);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
+        register(ctx.channel(), userId, roomId);
         if(interval > 0) {
             scheduledExecutorService.scheduleWithFixedDelay(() -> {
-                ThreadLocalRandom random = ThreadLocalRandom.current();
-                String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
                 int level = random.nextInt(1, 100);
                 String nickname = UUID.randomUUID().toString();
                 String content = WORDS[random.nextInt(WORDS.length)];
@@ -72,15 +72,15 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
     }
 
-    public static void register(Channel out, String userId) throws IOException {
+    private static void register(Channel out, String userId, String roomId) throws IOException {
         Map<String, Object> params = map(
                 "userId", userId,
-                "pass", ""
+                "roomId", roomId
         );
         writeMsg(out, params, 0);
     }
 
-    public static void chat(Channel out, String roomId, String content, String nickname, int level) throws IOException {
+    private static void chat(Channel out, String roomId, String content, String nickname, int level) throws IOException {
         Map<String, Object> params = map(
                 "roomId", roomId,
                 "content", content,
