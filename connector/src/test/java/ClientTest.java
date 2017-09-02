@@ -74,7 +74,8 @@ public class ClientTest {
 
                 String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
 
-                MessageUtils.register(out, userId, roomId);
+                MessageUtils.register(out, userId);
+                MessageUtils.enter(out, roomId);
                 out.flush();
 
                 while(true) {
