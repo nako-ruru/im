@@ -1,5 +1,4 @@
 import com.mycompany.im.connector.MessageUtils;
-import org.junit.Test;
 
 import java.io.*;
 import java.net.Socket;
@@ -11,8 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ClientTest {
 
-    @Test
-    public void testA() throws InterruptedException {
+    public static void main(String... args) throws InterruptedException {
         int clientCount = 1;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
@@ -78,7 +76,8 @@ public class ClientTest {
                 MessageUtils.enter(out, roomId);
                 out.flush();
 
-                while(true) {
+                boolean loop = true;
+                while(loop) {
                     int level = random.nextInt(1, 100);
                     String nickname = UUID.randomUUID().toString();
                     writeRandomMessage(out, roomId, nickname, level);

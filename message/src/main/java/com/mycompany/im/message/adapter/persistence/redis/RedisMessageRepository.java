@@ -11,12 +11,12 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPipeline;
 import redis.clients.jedis.ShardedJedisPool;
+import redis.clients.jedis.Tuple;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import redis.clients.jedis.Tuple;
 
 /**
  * Created by Administrator on 2017/5/29.
@@ -80,12 +80,12 @@ public class RedisMessageRepository implements MessageRepository {
 
     private static List<Message> newEmptyMessages(String roomId) {
         Message message = new Message();
-        message.setLevel(0);
+        message.setFromLevel(0);
         message.setParams(ImmutableMap.of());
-        message.setRoomId(roomId);
+        message.setToRoomId(roomId);
         message.setTime(System.currentTimeMillis());
         message.setType(10001);
-        message.setUserId("");
+        message.setFromUserId("");
         return Arrays.asList(message);
     }
 

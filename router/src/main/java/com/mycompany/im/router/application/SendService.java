@@ -1,14 +1,10 @@
 package com.mycompany.im.router.application;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.mycompany.im.router.domain.Message;
-import com.mycompany.im.router.domain.RoomRepository;
-import com.mycompany.im.util.JedisPoolUtils;
+import com.mycompany.im.router.domain.Payload;
+import com.mycompany.im.router.domain.RouteObject;
+import com.mycompany.im.router.domain.Router;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPipeline;
-import redis.clients.jedis.ShardedJedisPool;
 
 import javax.annotation.Resource;
 
@@ -19,30 +15,29 @@ import javax.annotation.Resource;
 public class SendService {
 
     @Resource
-    private RoomRepository roomRepository;
+    private Router router;
+
+    public void send(SendMessageToUserCommand command) {
+        RouteObject routeObject = new RouteObject();
+        Payload payload = new Payload(null, command.getToUserId(), 20000, ImmutableMap.of("content", command.getContent()));
+        routeObject.setRank(command.getRank());
+        routeObject.setPayload(payload);
+        router.route(routeObject);
+    }
 
     public void send(SendMessageToRoomCommand command) {
-        /*
-        Collection<UserConnection> userConnections = roomRepository.findUserConnectionsByRoomId(command.getRoomId());
-        Map<String, List<UserConnection>> grouped = userConnections.stream()
-                .collect(Collectors.groupingBy(UserConnection::getConnectorId));*/
-
-        ShardedJedisPool pool = JedisPoolUtils.pool();
-        Message message = new Message(command.getRoomId(), command.getModuleId(), 20000, ImmutableMap.of("content", command.getContent()), 0);
-        try (ShardedJedis jedis = pool.getResource()) {
-            ShardedJedisPipeline pipelined = jedis.pipelined();
-            pipelined.zadd(message.roomId, message.time, new Gson().toJson(message));
-            pipelined.sync();
-        }
+        RouteObject routeMessage = new RouteObject();
+        Payload message = new Payload(command.getToRoomId(), null, 20000, ImmutableMap.of("content", command.getContent()));
+        routeMessage.setRank(command.getRank());
+        routeMessage.setPayload(message);
+        router.route(routeMessage);
     }
 
     public void send(SendMessageToWorldCommand command) {
         SendMessageToRoomCommand command2 = new SendMessageToRoomCommand();
         command2.setContent(command.getContent());
-        command2.setModuleId(command.getModuleId());
-        command2.setRoomId("world");
+        command2.setToRoomId("world");
         send(command2);
     }
-
 
 }

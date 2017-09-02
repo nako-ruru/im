@@ -6,6 +6,7 @@
 package com.mycompany.im.router.adapter.spring.mvc;
 
 import com.mycompany.im.router.application.SendMessageToRoomCommand;
+import com.mycompany.im.router.application.SendMessageToUserCommand;
 import com.mycompany.im.router.application.SendMessageToWorldCommand;
 import com.mycompany.im.router.application.SendService;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,10 @@ public class SendController {
     }
     @RequestMapping(value = "/sendall", method = RequestMethod.POST)
     public void send(SendMessageToWorldCommand command) {
+        sendService.send(command);
+    }
+    @RequestMapping(value = "/sendtouser", method = RequestMethod.POST)
+    public void send(SendMessageToUserCommand command) {
         sendService.send(command);
     }
 

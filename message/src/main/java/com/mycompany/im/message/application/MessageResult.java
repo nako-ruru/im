@@ -9,33 +9,53 @@ import java.util.Map;
  */
 public class MessageResult {
 
-    private final String roomId;
-    private final String userId;
-    private final long time;
-    private final int type, level;
-    private final String nickname;
+    private final String toRoomId;
+    private final String fromUserId, fromNickname;
+    private final int fromLevel;
+    private final int type;
     private final Map<String, Object> params;
+    private final long time;
+    
+    @Deprecated
+    private final String roomId;
+    @Deprecated
+    private final String userId, nickname;
+    @Deprecated
+    private final int level;
 
-    public MessageResult(String roomId, String userId, int type, Map<String, Object> params, String nickname, int level, long time) {
-        this.roomId = roomId;
-        this.userId = userId;
+    public MessageResult(String toRoomId, String fromUserId, int type, Map<String, Object> params, String fromNickname, int fromLevel, long time) {
+        this.toRoomId = toRoomId;
+        this.fromUserId = fromUserId;
+        this.fromLevel = fromLevel;
+        this.fromNickname = fromNickname;
+        this.type = type;
         this.params = params;
         this.time = time;
-        this.type = type;
-        this.level = level;
-        this.nickname = nickname;
+        
+        this.roomId = toRoomId;
+        this.userId = fromUserId;
+        this.nickname = fromNickname;
+        this.level = fromLevel;
     }
 
-    public String getRoomId() {
-        return roomId;
+    public String getToRoomId() {
+        return toRoomId;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getFromUserId() {
+        return fromUserId;
+    }
+
+    public String getFromNickname() {
+        return fromNickname;
     }
 
     public long getTime() {
         return time;
+    }
+
+    public int getFromLevel() {
+        return fromLevel;
     }
 
     public int getType() {
@@ -46,12 +66,24 @@ public class MessageResult {
         return params;
     }
 
-    public int getLevel() {
-        return level;
+    @Deprecated
+    public String getRoomId() {
+        return roomId;
     }
 
+    @Deprecated
+    public String getUserId() {
+        return userId;
+    }
+
+    @Deprecated
     public String getNickname() {
         return nickname;
+    }
+
+    @Deprecated
+    public int getLevel() {
+        return level;
     }
 
     @Override

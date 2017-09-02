@@ -10,11 +10,11 @@ import java.util.Map;
 public class Message {
 
     private String messageId;
-    private String roomId;
-    private String userId;
+    private String toRoomId;
+    private String fromUserId;
+    private String fromNickname;
     private long time;
-    private String nickname;
-    private int type, level;
+    private int type, fromLevel;
     private Map<String, Object> params;
 
     public String getMessageId() {
@@ -25,20 +25,20 @@ public class Message {
         this.messageId = messageId;
     }
 
-    public String getRoomId() {
-        return roomId;
+    public String getToRoomId() {
+        return toRoomId;
     }
 
-    public void setRoomId(String roomId) {
-        this.roomId = roomId;
+    public void setToRoomId(String toRoomId) {
+        this.toRoomId = toRoomId;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getFromUserId() {
+        return fromUserId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setFromUserId(String fromUserId) {
+        this.fromUserId = fromUserId;
     }
 
     public int getType() {
@@ -49,12 +49,12 @@ public class Message {
         this.type = type;
     }
 
-    public String getNickname() {
-        return nickname;
+    public String getFromNickname() {
+        return fromNickname;
     }
 
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
+    public void setFromNickname(String fromNickname) {
+        this.fromNickname = fromNickname;
     }
 
     public Map<String, Object> getParams() {
@@ -65,12 +65,12 @@ public class Message {
         this.params = params;
     }
 
-    public int getLevel() {
-        return level;
+    public int getFromLevel() {
+        return fromLevel;
     }
 
-    public void setLevel(int level) {
-        this.level = level;
+    public void setFromLevel(int fromLevel) {
+        this.fromLevel = fromLevel;
     }
 
     public long getTime() {

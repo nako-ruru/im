@@ -13,16 +13,26 @@ import com.google.gson.Gson;
  */
 public class SendMessageToRoomCommand {
 
-    private String roomId;
+    private String toRoomId;
     private String content;
-    private String moduleId;
+    private int rank;
 
-    public String getRoomId() {
-        return roomId;
+    public String getToRoomId() {
+        return toRoomId;
     }
 
+    public void setToRoomId(String toRoomId) {
+        this.toRoomId = toRoomId;
+    }
+
+    @Deprecated
+    public String getRoomId() {
+        return toRoomId;
+    }
+
+    @Deprecated
     public void setRoomId(String roomId) {
-        this.roomId = roomId;
+        this.toRoomId = roomId;
     }
 
     public String getContent() {
@@ -33,12 +43,12 @@ public class SendMessageToRoomCommand {
         this.content = content;
     }
 
-    public String getModuleId() {
-        return moduleId;
+    public int getRank() {
+        return rank;
     }
 
-    public void setModuleId(String moduleId) {
-        this.moduleId = moduleId;
+    public void setRank(int rank) {
+        this.rank = rank;
     }
 
     @Override
