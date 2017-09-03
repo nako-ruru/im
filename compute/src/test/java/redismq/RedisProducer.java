@@ -21,11 +21,13 @@ public class RedisProducer {
         //通过修改roomId和userId来测试消息通过与否
         while (true) {
             ConnectorMessage msg = new ConnectorMessage(
-                    null, "room002",
+                    null,
+                    "room002",
                     "user001",
+                    "nickname001",
+                    ThreadLocalRandom.current().nextInt(1, 100),
                     1,
-                    ImmutableMap.of("content", UUID.randomUUID().toString()),
-                    ThreadLocalRandom.current().nextInt(1, 100)
+                    ImmutableMap.of("content", UUID.randomUUID().toString())
             );
             jedis.rpush("connector", new Gson().toJson(msg));
             Thread.sleep(1000L);
