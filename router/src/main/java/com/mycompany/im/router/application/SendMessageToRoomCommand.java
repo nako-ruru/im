@@ -15,7 +15,7 @@ public class SendMessageToRoomCommand {
 
     private String toRoomId;
     private String content;
-    private int rank;
+    private int importance;
 
     public String getToRoomId() {
         return toRoomId;
@@ -43,12 +43,12 @@ public class SendMessageToRoomCommand {
         this.content = content;
     }
 
-    public int getRank() {
-        return rank;
+    public int getImportance() {
+        return importance;
     }
 
-    public void setRank(int rank) {
-        this.rank = rank;
+    public void setImportance(int importance) {
+        this.importance = importance;
     }
 
     @Override

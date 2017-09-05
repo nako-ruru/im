@@ -72,15 +72,15 @@ public class KafkaRecv {
                         logger.debug("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                         logger.info(" [x] Received '" + message + "'");
                         try {
-                            RankBusinessMessage rankBusinessMessage = new Gson().fromJson(message, RankBusinessMessage.class);
-                            if(isSendingToNormalRoom(rankBusinessMessage)) {
-                                sendMessageToNormalRoom(rankBusinessMessage);
+                            BusinessMessage businessMessage = new Gson().fromJson(message, BusinessMessage.class);
+                            if(isSendingToNormalRoom(businessMessage)) {
+                                sendMessageToNormalRoom(businessMessage);
                             }
-                            if(isSendingToWorld(rankBusinessMessage)) {
-                                sendMessageToWorld(rankBusinessMessage);
+                            if(isSendingToWorld(businessMessage)) {
+                                sendMessageToWorld(businessMessage);
                             }
-                            if(isSendingToUser(rankBusinessMessage.getToUserId())) {
-                                sendMessageToUser(rankBusinessMessage);
+                            if(isSendingToUser(businessMessage.getToUserId())) {
+                                sendMessageToUser(businessMessage);
                             }
                         } catch(Exception e) {
                             logger.error("", e);
@@ -102,38 +102,38 @@ public class KafkaRecv {
             consumer.wakeup();
         }
 
-        private boolean isSendingToNormalRoom(RankBusinessMessage rankBusinessMessage) {
-            return StringUtils.isNotBlank(rankBusinessMessage.getToRoomId()) && !StringUtils.equalsIgnoreCase("world", rankBusinessMessage.getToRoomId());
+        private boolean isSendingToNormalRoom(BusinessMessage businessMessage) {
+            return StringUtils.isNotBlank(businessMessage.getToRoomId()) && !StringUtils.equalsIgnoreCase("world", businessMessage.getToRoomId());
         }
 
-        private boolean isSendingToWorld(RankBusinessMessage rankBusinessMessage) {
-            return StringUtils.isNotBlank(rankBusinessMessage.getToRoomId()) && StringUtils.equalsIgnoreCase("world", rankBusinessMessage.getToRoomId());
+        private boolean isSendingToWorld(BusinessMessage businessMessage) {
+            return StringUtils.isNotBlank(businessMessage.getToRoomId()) && StringUtils.equalsIgnoreCase("world", businessMessage.getToRoomId());
         }
 
         private boolean isSendingToUser(String toUserId) {
             return StringUtils.isNotBlank(toUserId);
         }
 
-        private void sendMessageToNormalRoom(RankBusinessMessage rankBusinessMessage) {
+        private void sendMessageToNormalRoom(BusinessMessage businessMessage) {
             SendMessageToRoomCommand command = new SendMessageToRoomCommand();
-            command.setRank(rankBusinessMessage.getRank());
-            command.setToRoomId(rankBusinessMessage.getToRoomId());
-            command.setContent(rankBusinessMessage.getContent());
+            command.setImportance(businessMessage.getImportance());
+            command.setToRoomId(businessMessage.getToRoomId());
+            command.setContent(businessMessage.getContent());
             sendService.send(command);
         }
 
-        private void sendMessageToWorld(RankBusinessMessage rankBusinessMessage) {
+        private void sendMessageToWorld(BusinessMessage businessMessage) {
             SendMessageToWorldCommand command = new SendMessageToWorldCommand();
-            command.setRank(rankBusinessMessage.getRank());
-            command.setContent(rankBusinessMessage.getContent());
+            command.setImportance(businessMessage.getImportance());
+            command.setContent(businessMessage.getContent());
             sendService.send(command);
         }
 
-        private void sendMessageToUser(RankBusinessMessage rankBusinessMessage) {
+        private void sendMessageToUser(BusinessMessage businessMessage) {
             SendMessageToUserCommand command = new SendMessageToUserCommand();
-            command.setRank(rankBusinessMessage.getRank());
-            command.setToUserId(rankBusinessMessage.getToUserId());
-            command.setContent(rankBusinessMessage.getContent());
+            command.setImportance(businessMessage.getImportance());
+            command.setToUserId(businessMessage.getToUserId());
+            command.setContent(businessMessage.getContent());
             sendService.send(command);
         }
 
@@ -151,11 +151,12 @@ public class KafkaRecv {
         return new KafkaConsumer<>(props);
     }
 
-    private static class RankBusinessMessage {
+    private static class BusinessMessage {
+
         private String toRoomId;
         private String toUserId;
         private String content;
-        private int rank;
+        private int importance;
 
         public String getToRoomId() {
             return toRoomId;
@@ -181,12 +182,12 @@ public class KafkaRecv {
             this.content = content;
         }
 
-        public int getRank() {
-            return rank;
+        public int getImportance() {
+            return importance;
         }
 
-        public void setRank(int rank) {
-            this.rank = rank;
+        public void setImportance(int importance) {
+            this.importance = importance;
         }
 
         @Override

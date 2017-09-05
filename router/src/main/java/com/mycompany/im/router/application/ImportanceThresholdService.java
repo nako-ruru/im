@@ -9,12 +9,12 @@ import javax.annotation.Resource;
  * Created by Administrator on 2017/9/2.
  */
 @Component
-public class ThresholdService {
+public class ImportanceThresholdService {
 
     @Resource
     private ThresholdRouteStrategy thresholdRouteStrategy;
 
-    public void setThreshold(ThresholdCommand command) {
+    public void setThreshold(ImportanceThresholdCommand command) {
         thresholdRouteStrategy.setThreshold(command.getThreshold());
     }
 

@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 public class SendMessageToWorldCommand {
 
     private String content;
-    private int rank;
+    private int importance;
 
     public String getContent() {
         return content;
@@ -18,12 +18,12 @@ public class SendMessageToWorldCommand {
         this.content = content;
     }
 
-    public int getRank() {
-        return rank;
+    public int getImportance() {
+        return importance;
     }
 
-    public void setRank(int rank) {
-        this.rank = rank;
+    public void setImportance(int importance) {
+        this.importance = importance;
     }
 
     @Override

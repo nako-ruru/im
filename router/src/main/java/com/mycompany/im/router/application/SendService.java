@@ -20,7 +20,7 @@ public class SendService {
     public void send(SendMessageToUserCommand command) {
         RouteObject routeObject = new RouteObject();
         Payload payload = new Payload(null, command.getToUserId(), 20000, ImmutableMap.of("content", command.getContent()));
-        routeObject.setRank(command.getRank());
+        routeObject.setImportance(command.getImportance());
         routeObject.setPayload(payload);
         router.route(routeObject);
     }
@@ -28,7 +28,7 @@ public class SendService {
     public void send(SendMessageToRoomCommand command) {
         RouteObject routeMessage = new RouteObject();
         Payload message = new Payload(command.getToRoomId(), null, 20000, ImmutableMap.of("content", command.getContent()));
-        routeMessage.setRank(command.getRank());
+        routeMessage.setImportance(command.getImportance());
         routeMessage.setPayload(message);
         router.route(routeMessage);
     }

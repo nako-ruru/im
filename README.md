@@ -27,17 +27,19 @@ public static void enter(DataOutput out, String roomId) throws IOException
 ```java
 public static void chat(DataOutput out, @Deprecated String roomId, String content, String nickname, int level) throws IOException
 ```
-需要注意的是chat方法中的roomId已经标记为过时
+> 注意：chat方法中的roomId已经标记为过时
 
 ### 客户端在房间接收消息(文本聊天或业务消息)
 接收消息分为两种。
 > 1. 一种是文本聊天或者实时性要求不高的业务消息，这种消息通过http polling方式来获取；
 > 1. 另一种则是通过接收服务器主动推送业务消息
 
+> 注意：这两种方式应该在客户端同时存在，而不是选择其中一种
+
 下面我们来详细说明两种方式的获取方式。
 #### http polling
 假设用户进入房间的id是24
-- 第一次进入房间时以**GET**访问http://47.92.98.23:8080/message/a?roomId=24&from=0
+- 第一次进入房间时以**GET**访问*http://47.92.98.23:8080/message/a?roomId=24&from=0*
 返回结果如下
 ```json
 [
@@ -48,14 +50,14 @@ public static void chat(DataOutput out, @Deprecated String roomId, String conten
 		"type": 10001,
 		"params": {},
 		"time": 1504601256272,
-		"roomId": "8",
+		"roomId": "24",
 		"userId": "",
 		"level": 0
 	}
 ]
 ```
 > 应当注意的是roomId, userId, level均是已废弃的属性，鉴于目前暂时兼容旧的数据格式，我们临时保留一段时间
-- 接着定时轮询，from的值为上一次response的**time+1**
+- 接着定时轮询，from的值为上一次结果最后一条消息的**time+1**(最大的time + 1)
 ```json
 [
   {
@@ -112,3 +114,23 @@ public static void chat(DataOutput out, @Deprecated String roomId, String conten
 
 ### 业务方发送业务消息
 业务方发送业务消息目前是通过restful api来完成的，稍后我们会提供mq方式。
+
+客户端接收消息有两种途径，同样业务消息的下发也有两种途径。
+> 然而由哪种途径下发并非由业务方决定，业务方仅仅能决定这条消息的重要性(importance)；系统根据当前负载和这条消息的重要性来决定这条消息由哪个途径给客户端。
+
+> 重要性没有严格要求最大值和最小值，但为了便于沟通，我们这里假定最大值为10，最小值为1
+
+下面是业务方发送业务消息的相关接口
+- 发送消息给指定房间，则以**POST**访问*http://47.92.98.23:8080/router/send?roomId=3&impotance=8&content=xxxxx*
+- 发送消息给世界，则以**POST**访问*http://47.92.98.23:8080/router/sendall?impotance=8&content=xxxxx*
+- 发送消息给指定用户，则以**POST**访问*http://47.92.98.23:8080/router/sendtouser?userId=8&content=xxxxx*
+
+### 设定业务方消息路由到推送途径的消息级别阈值
+由于业务方发送消息会指定重要性，那么系统如何根据重要性来确定由哪个途径下发到客户端呢？具体规则如下：
+> 当业务方发送的消息的重要性大于系统设定的阈值时，消息会由推送管道下发到客户端；反之则由http poll管道下发到客户端
+
+如何设定系统阈值？目前我们通过人工的方式设定消息阈值。具体方式是通过restful api来设定
+
+假设我们要设定通过推送管道下发消息的重要性的阈值为4，则以**POST**访问
+*http://47.92.98.23:8080/router/importance?threshold=4*
+
