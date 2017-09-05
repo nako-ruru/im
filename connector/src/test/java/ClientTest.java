@@ -76,7 +76,7 @@ public class ClientTest {
                 MessageUtils.enter(out, roomId);
                 out.flush();
 
-                boolean loop = true;
+                boolean loop = false;
                 while(loop) {
                     int level = random.nextInt(1, 100);
                     String nickname = UUID.randomUUID().toString();

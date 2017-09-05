@@ -22,7 +22,7 @@ public class ThresholdRouteStrategy implements RouteStrategy {
         if(!Strings.isNullOrEmpty(message.getPayload().toUserId)) {
             return SpringContext.getBean(ConnectorPushChannel.class);
         }
-        return message.getImportance() >= threshold ?
+        return message.getImportance() <= threshold ?
                 SpringContext.getBean(ConnectorPushChannel.class) :
                 SpringContext.getBean(HttpPollingChannel.class);
     }

@@ -133,7 +133,7 @@ public static void chat(DataOutput out, @Deprecated String roomId, String conten
 客户端接收消息有两种途径，同样业务消息的下发也有两种途径。
 > 然而由哪种途径下发并非由业务方决定，业务方仅仅能决定这条消息的重要性(importance)；系统根据当前负载和这条消息的重要性来决定这条消息由哪个途径给客户端。
 
-> 重要性没有严格要求最大值和最小值，但为了便于沟通，我们这里假定最大值为10，最小值为1
+> 重要性值越小则重要程度越大。重要性最高程度的值为0，但没有严格要求最低程度的值。
 
 下面是业务方发送业务消息的相关接口
 - 发送消息给指定房间，则以**POST**访问*http://47.92.98.23:8080/router/send?roomId=3&impotance=8&content=xxxxx*
