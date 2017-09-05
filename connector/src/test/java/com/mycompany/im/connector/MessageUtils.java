@@ -122,7 +122,10 @@ public class MessageUtils {
     }
 
     public static class Msg {
-        private String userId, roomId, moduleId, content;
+        @Deprecated
+        private String userId, roomId, content;
+        private String toUserId, toRoomId;
+        private Map<String, Object> params;
 
         public String getUserId() {
             return userId;
@@ -138,18 +141,35 @@ public class MessageUtils {
             this.roomId = roomId;
         }
 
-        public String getModuleId() {
-            return moduleId;
-        }
-        public void setModuleId(String moduleId) {
-            this.moduleId = moduleId;
-        }
-
         public String getContent() {
             return content;
         }
         public void setContent(String content) {
             this.content = content;
+        }
+
+        public String getToUserId() {
+            return toUserId;
+        }
+
+        public void setToUserId(String toUserId) {
+            this.toUserId = toUserId;
+        }
+
+        public String getToRoomId() {
+            return toRoomId;
+        }
+
+        public void setToRoomId(String toRoomId) {
+            this.toRoomId = toRoomId;
+        }
+
+        public Map<String, Object> getParams() {
+            return params;
+        }
+
+        public void setParams(Map<String, Object> params) {
+            this.params = params;
         }
 
         @Override

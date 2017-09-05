@@ -2,7 +2,7 @@ package redismq;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import com.mycompany.im.compute.domain.ConnectorMessage;
+import com.mycompany.im.compute.domain.FromConnectorMessage;
 import redis.clients.jedis.Jedis;
 
 import java.util.UUID;
@@ -20,7 +20,7 @@ public class RedisProducer {
 
         //通过修改roomId和userId来测试消息通过与否
         while (true) {
-            ConnectorMessage msg = new ConnectorMessage(
+            FromConnectorMessage msg = new FromConnectorMessage(
                     null,
                     "room002",
                     "user001",

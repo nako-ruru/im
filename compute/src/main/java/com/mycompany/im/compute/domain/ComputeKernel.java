@@ -3,13 +3,13 @@ package com.mycompany.im.compute.domain;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
+import com.mycompany.im.compute.adapter.persistence.redis.RedisMessageRepository;
 import com.mycompany.im.util.JedisPoolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
-import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
@@ -36,6 +36,8 @@ public class ComputeKernel {
     private KeywordHandler keywordHandler;
     @Resource
     private RoomManagementQuery roomManagementQuery;
+    @Resource
+    private RedisMessageRepository messageRepository;
 
     public void start() {
         RoomManagementQuery.RoomManagementInfo roomManagementInfo = roomManagementQuery.query();
@@ -91,7 +93,7 @@ public class ComputeKernel {
                     break;
                 }
             } while (true);
-        }).start();
+        }, "redis-sub").start();
     }
 
     public void compute(String message) {
@@ -99,18 +101,14 @@ public class ComputeKernel {
     }
 
     private void handleIncomingMessage(String message, KeywordHandler keywordHandler, ShardedJedisPool pool) {
-        ConnectorMessage msg = new Gson().fromJson(message, ConnectorMessage.class);
+        FromConnectorMessage msg = new Gson().fromJson(message, FromConnectorMessage.class);
         if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
             String oldContent = (String) msg.params.get("content");
             String newContent = keywordHandler.handle(oldContent);
-            String newMessage = message;
             if(!Objects.equals(newContent, oldContent)) {
                 msg.params.put("content", newContent);
-                newMessage = new Gson().toJson(msg);
             }
-            try(ShardedJedis shardedJedis = pool.getResource()) {
-                shardedJedis.zadd(msg.roomId, msg.time, newMessage);
-            }
+            messageRepository.save(new ToPollingMessage(msg.messageId, msg.roomId, msg.userId, msg.nickname, msg.level, msg.type, msg.params));
         }
     }
     

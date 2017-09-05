@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * Created by Administrator on 2017/5/28.
  */
-public class ConnectorMessage {
+public class FromConnectorMessage {
 
     public final String messageId;
     public final String roomId, userId, nickname;
@@ -13,7 +13,7 @@ public class ConnectorMessage {
     public final int level, type;
     public final Map<String, Object> params;
 
-    public ConnectorMessage(String messageId, String roomId, String userId, String nickname, int level, int type, Map<String, Object> params) {
+    public FromConnectorMessage(String messageId, String roomId, String userId, String nickname, int level, int type, Map<String, Object> params) {
         this.messageId = messageId;
         this.roomId = roomId;
         this.userId = userId;
@@ -21,8 +21,7 @@ public class ConnectorMessage {
         this.params = params;
         this.type = type;
         this.level = level;
-        time = System.currentTimeMillis();
+        this.time = System.currentTimeMillis();
     }
-
 
 }

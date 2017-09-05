@@ -20,7 +20,6 @@ public class JedisPubSubTest {
         while (true) {
             MessageUtils.Msg msg = new MessageUtils.Msg();
             msg.setContent("content---" + UUID.randomUUID().toString());
-            msg.setModuleId("module---" + UUID.randomUUID().toString());
             msg.setRoomId("de6edf9f-55de-44aa-b773-97bcce3ffb04");
             jedis.publish("mychannel", new Gson().toJson(msg));
             Thread.sleep(ThreadLocalRandom.current().nextLong(1000L, 3000L));

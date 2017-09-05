@@ -3,12 +3,21 @@ package com.mycompany.im.router.application;
 import com.google.gson.Gson;
 
 /**
- * Created by Administrator on 2017/6/27.
+ * Created by Administrator on 2017/9/3.
  */
-public class SendMessageToWorldCommand {
+public class SendMessageToUserCommand {
 
+    private String toUserId;
     private String content;
     private int rank;
+
+    public String getToUserId() {
+        return toUserId;
+    }
+
+    public void setToUserId(String toUserId) {
+        this.toUserId = toUserId;
+    }
 
     public String getContent() {
         return content;
@@ -30,5 +39,6 @@ public class SendMessageToWorldCommand {
     public String toString() {
         return new Gson().toJson(this);
     }
+
 
 }

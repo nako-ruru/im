@@ -25,7 +25,7 @@ public class KafkaRecv {
     private final AtomicBoolean closed = new AtomicBoolean(false);
     
     private String topic = "connector";
-    private String bootstrapServers = "172.26.7.220:9092";
+    private String bootstrapServers = "47.92.98.23:9092";
 
     private ComputeService computeService;
 

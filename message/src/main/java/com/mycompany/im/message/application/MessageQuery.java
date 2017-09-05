@@ -26,12 +26,12 @@ public class MessageQuery {
 
     private static MessageResult convert(Message message) {
         return new MessageResult(
-                message.getRoomId(),
-                message.getUserId(),
+                message.getToRoomId(),
+                message.getFromUserId(),
                 message.getType(),
                 message.getParams(),
-                message.getNickname(),
-                message.getLevel(),
+                message.getFromNickname(),
+                message.getFromLevel(),
                 message.getTime()
         );
     }
