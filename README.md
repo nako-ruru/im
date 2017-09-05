@@ -43,74 +43,89 @@ public static void chat(DataOutput out, @Deprecated String roomId, String conten
 返回结果如下
 ```json
 [
-	{
-		"toRoomId": "24",
-		"fromUserId": "",
-		"fromLevel": 0,
-		"type": 10001,
-		"params": {},
-		"time": 1504601256272,
-		"roomId": "24",
-		"userId": "",
-		"level": 0
-	}
+    {
+        "toRoomId": "24",
+        "fromUserId": "",
+        "fromLevel": 0,
+        "type": 10001,
+        "params": {},
+        "time": 1504601256272,
+        "roomId": "24",
+        "userId": "",
+        "level": 0
+    }
 ]
 ```
 > 应当注意的是roomId, userId, level均是已废弃的属性，鉴于目前暂时兼容旧的数据格式，我们临时保留一段时间
 - 接着定时轮询，from的值为上一次结果最后一条消息的**time+1**(最大的time + 1)
 ```json
 [
-  {
-    "toRoomId": "24",
-    "fromUserId": "3",
-    "fromNickname": "刘德华",
-    "fromLevel": 0,
-    "type": 1,
-    "params": {
-      "content": "这位主播不错"
+    {
+        "toRoomId": "24",
+        "fromUserId": "3",
+        "fromNickname": "刘德华",
+        "fromLevel": 0,
+        "type": 1,
+        "params": {
+            "content": "这位主播不错"
+        },
+        "time": 1504601669582,
+        "roomId": "24",
+        "userId": "3",
+        "nickname": "",
+        "level": 4
     },
-    "time": 1504601669582,
-    "roomId": "24",
-    "userId": "3",
-    "nickname": "",
-    "level": 4
-  },
-  {
-    "toRoomId": "24",
-    "fromUserId": "4",
-    "fromNickname": "Enya",
-    "fromLevel": 0,
-    "type": 1,
-    "params": {
-      "content": "主播居然唱我的成名曲<Only Time>...，缴纳版权费了么？"
+    {
+        "toRoomId": "24",
+        "fromUserId": "4",
+        "fromNickname": "Enya",
+        "fromLevel": 0,
+        "type": 1,
+        "params": {
+            "content": "主播居然唱我的成名曲<Only Time>...，缴纳版权费了么？"
+        },
+        "time": 1504601671381,
+        "roomId": "24",
+        "userId": "4",
+        "nickname": "",
+        "level": 7
     },
-    "time": 1504601671381,
-    "roomId": "24",
-    "userId": "4",
-    "nickname": "",
-    "level": 7
-  },
-  {
-    "toRoomId": "24",
-    "fromUserId": "13",
-    "fromNickname": "酱油粉",
-    "fromLevel": 1,
-    "type": 1,
-    "params": {
-      "content": "好饿啊，我还没吃晚饭，我先闪了，88"
-    },
-    "time": 1504601675281,
-    "roomId": "24",
-    "userId": "13",
-    "nickname": "",
-    "level": 1
-  }
+    {
+        "toRoomId": "24",
+        "fromUserId": "13",
+        "fromNickname": "酱油粉",
+        "fromLevel": 1,
+        "type": 1,
+        "params": {
+            "content": "好饿啊，我还没吃晚饭，我先闪了，88"
+        },
+        "time": 1504601675281,
+        "roomId": "24",
+        "userId": "13",
+        "nickname": "",
+        "level": 1
+    }
 ]
 ```
 > 和第一种情况一样，roomId, userId, level均是已废弃的属性
 
 ##### 推送
-在发送消息一栏已经提到过注册推送消息回调
+在发送消息一栏已经提到过注册推送消息回调，此后就能正常接收来自服务器通过推送管道下发的消息，其格式如下：
+```json
+{
+    "userId": "",
+    "roomId": "7c52118f-1b8e-46aa-9413-8931a67fe88e",
+    "content": "%7B%22type%22%3A80%2C%22data%22%3A%7B%22actorId%22%3A%2227%22%7D%7D",
+    "toUserId": "",
+    "toRoomId": "7c52118f-1b8e-46aa-9413-8931a67fe88e",
+    "params": {
+        "content": "%7B%22type%22%3A80%2C%22data%22%3A%7B%22actorId%22%3A%2227%22%7D%7D"
+    }
+}
+```
+> 注意：userId, roomId, content均已废弃，目前短暂保留
+
+> content是业务方发送的消息，采用BASE64方式编码。事实上content格式不受任何限制，只要和客户端沟通好具体编码解码方式即可。
 
 ### 业务方发送业务消息
 业务方发送业务消息目前是通过restful api来完成的，稍后我们会提供mq方式。
@@ -124,6 +139,8 @@ public static void chat(DataOutput out, @Deprecated String roomId, String conten
 - 发送消息给指定房间，则以**POST**访问*http://47.92.98.23:8080/router/send?roomId=3&impotance=8&content=xxxxx*
 - 发送消息给世界，则以**POST**访问*http://47.92.98.23:8080/router/sendall?impotance=8&content=xxxxx*
 - 发送消息给指定用户，则以**POST**访问*http://47.92.98.23:8080/router/sendtouser?userId=8&content=xxxxx*
+
+>注意：content应当用UTF8 URLEncoding编码
 
 ### 设定业务方消息路由到推送途径的消息级别阈值
 由于业务方发送消息会指定重要性，那么系统如何根据重要性来确定由哪个途径下发到客户端呢？具体规则如下：
