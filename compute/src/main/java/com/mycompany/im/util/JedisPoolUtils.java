@@ -94,11 +94,11 @@ public class JedisPoolUtils {
 
     private static Properties properties() {
         Properties properties = new Properties();
-        try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/redis_pool.properties"), StandardCharsets.UTF_8)) {
+        try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/compute.properties"), StandardCharsets.UTF_8)) {
             properties.load(in);
         } catch (IOException e) {
         }
-        try (Reader in = new InputStreamReader(new FileInputStream("/opt/im_compute/config/redis_pool.properties"), StandardCharsets.UTF_8)) {
+        try (Reader in = new InputStreamReader(new FileInputStream("/opt/im_compute/config/compute.properties"), StandardCharsets.UTF_8)) {
             properties.load(in);
         } catch (IOException e) {
         }

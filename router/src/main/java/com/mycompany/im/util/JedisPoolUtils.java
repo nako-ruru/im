@@ -1,8 +1,6 @@
 package com.mycompany.im.util;
 
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisShardInfo;
-import redis.clients.jedis.ShardedJedisPool;
+import redis.clients.jedis.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,6 +9,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +22,16 @@ public class JedisPoolUtils {
     private static final Object lock = new Object();
     private static volatile ShardedJedisPool pool;
 
+
+    public static Jedis jedis() {
+        HostPortPassword hostPortPassword = readHostPortPasswords().iterator().next();
+        final Jedis jedis = new Jedis(hostPortPassword.host, hostPortPassword.port, 1000);
+        if(hostPortPassword.password != null) {
+            jedis.auth(hostPortPassword.password);
+        }
+        return jedis;
+    }
+
     public static ShardedJedisPool pool() {
         if(pool == null) {
             synchronized (lock) {
@@ -33,6 +42,22 @@ public class JedisPoolUtils {
             }
         }
         return pool;
+    }
+
+    private static Set<HostPortPassword> readHostPortPasswords() {
+        Properties properties = properties();
+
+        String serverInfoText = properties.getProperty("redis");
+        Set<HostPortPassword> hostAndPorts = Stream.of(serverInfoText.split("[;,]"))
+                .map(element -> element.split(":"))
+                .map((String[] info) -> new HostPortPassword(
+                            info[0].trim(),
+                            info.length >= 2 ? Integer.parseInt(info[1].trim()) : 6379,
+                            info.length >= 3 ? info[2].trim() : null
+                    )
+                )
+                .collect(Collectors.toSet());
+        return hostAndPorts;
     }
 
     private static List<JedisShardInfo> readJedisShardInfos() {
@@ -63,6 +88,17 @@ public class JedisPoolUtils {
         } catch (IOException e) {
         }
         return properties;
+    }
+
+    private static class HostPortPassword {
+        public final String host, password;
+        public final int port;
+        public HostPortPassword(String host, int port, String password) {
+            this.host = host;
+            this.port = port;
+            this.password = password;
+        }
+
     }
 
 }

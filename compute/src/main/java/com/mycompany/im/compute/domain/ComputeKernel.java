@@ -3,6 +3,7 @@ package com.mycompany.im.compute.domain;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
+import com.jsoniter.JsonIterator;
 import com.mycompany.im.compute.adapter.persistence.redis.RedisMessageRepository;
 import com.mycompany.im.util.JedisPoolUtils;
 import org.slf4j.Logger;
@@ -97,11 +98,11 @@ public class ComputeKernel {
     }
 
     public void compute(String message) {
-        handleIncomingMessage(message, keywordHandler, pool);
+        handleIncomingMessage(message, keywordHandler);
     }
 
-    private void handleIncomingMessage(String message, KeywordHandler keywordHandler, ShardedJedisPool pool) {
-        FromConnectorMessage msg = new Gson().fromJson(message, FromConnectorMessage.class);
+    private void handleIncomingMessage(String message, KeywordHandler keywordHandler) {
+        FromConnectorMessage msg = JsonIterator.deserialize(message).as(FromConnectorMessage.class);
         if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
             String oldContent = (String) msg.params.get("content");
             String newContent = keywordHandler.handle(oldContent);

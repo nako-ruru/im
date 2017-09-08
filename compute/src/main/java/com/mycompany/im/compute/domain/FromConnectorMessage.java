@@ -13,6 +13,10 @@ public class FromConnectorMessage {
     public final int level, type;
     public final Map<String, Object> params;
 
+    private FromConnectorMessage() {
+        this(null, null, null, null, 0, 0, null);
+    }
+
     public FromConnectorMessage(String messageId, String roomId, String userId, String nickname, int level, int type, Map<String, Object> params) {
         this.messageId = messageId;
         this.roomId = roomId;

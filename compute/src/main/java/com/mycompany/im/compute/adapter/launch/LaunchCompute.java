@@ -11,7 +11,7 @@ public class LaunchCompute {
 
     public static void main(String[] args) throws Exception {
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-                "framework.xml", "performance-monitor.xml"
+                "framework.xml", "performance-monitor.xml", "config.xml"
         );
         applicationContext.getBean(ComputeKernel.class).start();
 

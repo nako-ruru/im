@@ -25,7 +25,7 @@ public class KafkaRecv {
     private final AtomicBoolean closed = new AtomicBoolean(false);
     
     private String topic = "connector";
-    private String bootstrapServers = "47.92.98.23:9092";
+    private String bootstrapServers;
 
     private ComputeService computeService;
 
@@ -44,6 +44,7 @@ public class KafkaRecv {
     public void setComputeService(ComputeService computeService) {
         this.computeService = computeService;
     }
+    @Resource(name = "kafka.brokers")
     public void setBootstrapServers(String bootstrapServers) {
         this.bootstrapServers = bootstrapServers;
     }
@@ -75,6 +76,7 @@ public class KafkaRecv {
                 }
             } catch (WakeupException e) {
                 // Ignore exception if closing
+                logger.error("", e);
                 if (!closed.get()) {
                     throw e;
                 }
@@ -95,6 +97,7 @@ public class KafkaRecv {
         props.put("group.id", "jd-group");
         props.put("enable.auto.commit", "true");
         props.put("auto.commit.interval.ms", "1000");
+        props.put("max.poll.records", "100000");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 

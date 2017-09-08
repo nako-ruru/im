@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class JedisPoolTest {
 
     @Test
-    public void test7shardSimplePool() {
+    public void ztest() {
         ShardedJedisPool pool = JedisPoolUtils.pool();
 
         ShardedJedis one = pool.getResource();
@@ -21,7 +21,7 @@ public class JedisPoolTest {
         Set<String> keys = one.getAllShards().stream()
                 .flatMap(jedis -> jedis.keys("*").stream())
                 .collect(Collectors.toSet());
-        keys.forEach(pipelined1::del);
+        keys.forEach(key -> pipelined1.zremrangeByRank("a", 0, -1));
         pipelined1.sync();
 
         one.close();
@@ -29,13 +29,20 @@ public class JedisPoolTest {
         ShardedJedisPipeline pipelined = one.pipelined();
 
         long start = System.currentTimeMillis();
-        for (int i = 0; i < 10; i++) {
-            pipelined.rpush("i", "" + i);
+        for (int i = 0; i < 100000; i++) {
+            pipelined.zadd("a", i, "" + i);
         }
         long end = System.currentTimeMillis();
         pipelined.sync();
-        pool.close();
         System.out.println("Simple@Pool SET: " + ((end - start)/1000.0) + " seconds");
+
+        one.close();
+        one = pool.getResource();
+        ShardedJedisPipeline pipelined2 = one.pipelined();
+
+        pipelined2.zremrangeByRank("a", 0, -1001);
+        pipelined2.sync();
+
 
         pool.destroy();
     }

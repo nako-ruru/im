@@ -14,7 +14,6 @@ import redis.clients.jedis.ShardedJedisPool;
 import redis.clients.jedis.Tuple;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,10 +64,9 @@ public class RedisMessageRepository implements MessageRepository {
             
             ShardedJedisPipeline pipelined = resource.pipelined();
 
-            long end = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(5);
             for(String key : keys) {
                 try {
-                    pipelined.zremrangeByScore(key, 0, end);
+                    pipelined.zremrangeByRank(key, 0, -1001);
                 } catch (Exception e) {
                     logger.error("", e);
                 }

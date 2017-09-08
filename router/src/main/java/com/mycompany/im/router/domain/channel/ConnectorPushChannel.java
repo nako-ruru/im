@@ -11,10 +11,11 @@ import redis.clients.jedis.Jedis;
  */
 @Component
 public class ConnectorPushChannel implements Channel {
+
+    Jedis jedis = JedisPoolUtils.jedis();
     
     @Override
     public void send(Payload message) {
-        Jedis jedis = JedisPoolUtils.pool().getResource().getAllShards().iterator().next();
         jedis.publish("router", new Gson().toJson(message));
     }
     
