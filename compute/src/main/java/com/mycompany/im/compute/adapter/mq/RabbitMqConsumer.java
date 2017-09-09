@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -50,7 +51,7 @@ public class RabbitMqConsumer {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String message = new String(body, "UTF-8");
                 logger.info(" [x] Received '" + message + "'");
-                computeService.compute(message);
+                computeService.compute(Arrays.asList(message));
             }
         };
         channel.basicConsume(QUEUE_NAME, true, consumer);

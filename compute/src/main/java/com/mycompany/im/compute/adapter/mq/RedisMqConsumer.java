@@ -10,6 +10,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import javax.annotation.Resource;
 import java.net.SocketException;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -30,14 +31,16 @@ public class RedisMqConsumer {
                     ShardedJedis jedis = JedisPoolUtils.shardedJedisPool().getResource();
                     while(true) {
                         List<String> messages = jedis.blpop(0, "connector");
+                        List<String> messages2 = new LinkedList<>();
                         for(int i = 1; i < messages.size(); i += 2) {
                             String message = messages.get(i);
-                            try {
-                                logger.info(" [x] Received '" + message + "'");
-                                computeService.compute(message);
-                            } catch (Exception e) {
-                                logger.error("", e);
-                            }
+                            logger.info(" [x] Received '" + message + "'");
+                            messages2.add(message);
+                        }
+                        try {
+                            computeService.compute(messages2);
+                        } catch (Exception e) {
+                            logger.error("", e);
                         }
                     }
                 } catch (JedisConnectionException e) {

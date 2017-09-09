@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -63,15 +65,17 @@ public class KafkaRecv {
                 consumer.subscribe(Arrays.asList(topic));
                 while (!closed.get()) {
                     ConsumerRecords<String, String> records = consumer.poll(2000);
+                    Collection<String> messages = new LinkedList<>();
                     for (ConsumerRecord<String, String> record : records) {
                         final String message = record.value();
                         logger.debug("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                         logger.info(" [x] Received '" + message + "'");
-                        try {
-                            computeService.compute(message);
-                        } catch(Exception e) {
-                            logger.error("", e);
-                        }
+                        messages.add(message);
+                    }
+                    try {
+                        computeService.compute(messages);
+                    } catch(Exception e) {
+                        logger.error("", e);
                     }
                 }
             } catch (WakeupException e) {

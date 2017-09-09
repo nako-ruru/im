@@ -3,6 +3,8 @@ package kafka;
 import com.mycompany.im.compute.adapter.mq.KafkaRecv;
 import com.mycompany.im.compute.application.ComputeService;
 
+import java.util.Collection;
+
 /**
  * Create by fengtang
  * 2015/10/8 0008
@@ -16,7 +18,7 @@ public class KafkaConsumerTest {
         KafkaRecv consumer = new KafkaRecv();
         consumer.setComputeService(new ComputeService() {
             @Override
-            public void compute(String message) {
+            public void compute(Collection<String> message) {
                 //do nothing
             }
         });

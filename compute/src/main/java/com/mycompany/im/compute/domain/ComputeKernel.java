@@ -16,9 +16,9 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import javax.annotation.Resource;
 import java.net.SocketException;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 该类订阅从connector发来的某玩家消息，并判断该玩家是否被禁言或踢掉，如果没有则存储到redis里
@@ -97,20 +97,25 @@ public class ComputeKernel {
         }, "redis-sub").start();
     }
 
-    public void compute(String message) {
+    public void compute(Collection<String> message) {
         handleIncomingMessage(message, keywordHandler);
     }
 
-    private void handleIncomingMessage(String message, KeywordHandler keywordHandler) {
-        FromConnectorMessage msg = JsonIterator.deserialize(message).as(FromConnectorMessage.class);
-        if(!silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId)) {
-            String oldContent = (String) msg.params.get("content");
-            String newContent = keywordHandler.handle(oldContent);
-            if(!Objects.equals(newContent, oldContent)) {
-                msg.params.put("content", newContent);
-            }
-            messageRepository.save(new ToPollingMessage(msg.messageId, msg.roomId, msg.userId, msg.nickname, msg.level, msg.type, msg.params));
-        }
+    private void handleIncomingMessage(Collection<String> messages, KeywordHandler keywordHandler) {
+        Collection<ToPollingMessage> toPollingMessages = messages.stream()
+                .map(message -> JsonIterator.deserialize(message).as(FromConnectorMessage.class))
+                .filter(msg -> !silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId))
+                .map(msg -> {
+                    String oldContent = (String) msg.params.get("content");
+                    String newContent = keywordHandler.handle(oldContent);
+                    if(!Objects.equals(newContent, oldContent)) {
+                        msg.params.put("content", newContent);
+                    }
+                    return msg;
+                })
+                .map(msg -> new ToPollingMessage(msg.messageId, msg.roomId, msg.userId, msg.nickname, msg.level, msg.type, msg.params))
+                .collect(Collectors.toCollection(LinkedList::new));
+        messageRepository.save(toPollingMessages);
     }
     
     private static <K, V> Multimap<K, V> newConcurrentHashMultimap() {

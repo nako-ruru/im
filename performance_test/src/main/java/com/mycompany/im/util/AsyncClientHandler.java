@@ -44,11 +44,11 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
+        String roomId = ROOM_IDS[ThreadLocalRandom.current().nextInt(ROOM_IDS.length)];
         register(ctx.channel(), userId, roomId);
         if(interval > 0) {
             scheduledExecutorService.scheduleWithFixedDelay(() -> {
+                ThreadLocalRandom random = ThreadLocalRandom.current();
                 int level = random.nextInt(1, 100);
                 String nickname = UUID.randomUUID().toString();
                 String content = WORDS[random.nextInt(WORDS.length)];
@@ -85,7 +85,8 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                 "roomId", roomId,
                 "content", content,
                 "nickname", nickname,
-                "level", level
+                "level", level,
+                "clientTime", System.currentTimeMillis()
         );
         writeMsg(out, params, 1);
     }

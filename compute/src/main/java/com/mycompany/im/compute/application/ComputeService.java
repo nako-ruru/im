@@ -4,6 +4,7 @@ import com.mycompany.im.compute.domain.ComputeKernel;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collection;
 
 /**
  * Created by Administrator on 2017/8/28.
@@ -14,7 +15,7 @@ public class ComputeService {
     @Resource
     private ComputeKernel computeKernel;
 
-    public void compute(String message) {
+    public void compute(Collection<String> message) {
         computeKernel.compute(message);
     }
 

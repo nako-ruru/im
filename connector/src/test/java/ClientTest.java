@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ClientTest {
 
     public static void main(String... args) throws InterruptedException {
-        int clientCount = 1;
+        int clientCount = 10;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;
@@ -39,7 +39,7 @@ public class ClientTest {
                 "欢迎来到小美直播间，喜欢小美的朋友们点点关注"
         };
 
-        private static final String[] ROOM_IDS = new String[2];
+        private static final String[] ROOM_IDS = new String[1];
         static {
             for(int i = 0; i < ROOM_IDS.length; i++) {
                 ROOM_IDS[i] = UUID.randomUUID().toString();
@@ -76,7 +76,7 @@ public class ClientTest {
                 MessageUtils.enter(out, roomId);
                 out.flush();
 
-                boolean loop = false;
+                boolean loop = true;
                 while(loop) {
                     int level = random.nextInt(1, 100);
                     String nickname = UUID.randomUUID().toString();
