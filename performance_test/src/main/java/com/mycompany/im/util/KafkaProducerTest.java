@@ -1,6 +1,7 @@
 package com.mycompany.im.util;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 
@@ -30,10 +31,11 @@ public class KafkaProducerTest {
     void produce() {
         long start = System.currentTimeMillis();
         int messageNo = 1;
-        final int COUNT = 1000000;
-        StringBuilder data = new StringBuilder("hello kafka message ");
+        final int COUNT = 100000;
         while (messageNo < COUNT) {
-            data.append(messageNo);
+            String key = String.valueOf(messageNo);
+            String data = "hello kafka message " + key;
+            producer.send(new ProducerRecord<>(TOPIC, key, data));
             messageNo++;
         }
         producer.close();
