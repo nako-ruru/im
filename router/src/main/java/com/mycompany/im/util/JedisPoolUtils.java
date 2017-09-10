@@ -79,11 +79,11 @@ public class JedisPoolUtils {
 
     private static Properties properties() {
         Properties properties = new Properties();
-        try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/redis_pool.properties"), StandardCharsets.UTF_8)) {
+        try (Reader in = new InputStreamReader(JedisPoolUtils.class.getResourceAsStream("/router.properties"), StandardCharsets.UTF_8)) {
             properties.load(in);
         } catch (IOException e) {
         }
-        try (Reader in = new InputStreamReader(new FileInputStream("/opt/config/router/redis_pool.properties"), StandardCharsets.UTF_8)) {
+        try (Reader in = new InputStreamReader(new FileInputStream("/opt/config/router/router.properties"), StandardCharsets.UTF_8)) {
             properties.load(in);
         } catch (IOException e) {
         }

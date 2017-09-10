@@ -38,7 +38,8 @@
             <param-name>contextConfigLocation</param-name>
             <param-value>
                 classpath:framework.xml,
-                classpath:mvc.xml
+                classpath:mvc.xml,
+                classpath:config.xml
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

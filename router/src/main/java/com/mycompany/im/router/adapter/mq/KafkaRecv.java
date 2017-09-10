@@ -14,8 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,13 +38,15 @@ public class KafkaRecv {
 
     private SendService sendService;
 
+    @PostConstruct
     public void start() {
         int threadCount = 2;
         for(int i = 0; i < threadCount; i++) {
             new Thread(new KafkaConsumerRunner(), "kafka-consumer-" + i).start();
         }
     }
-    
+
+    @PreDestroy
     public void shutdown() {
         closed.set(true);
     }
@@ -49,6 +55,7 @@ public class KafkaRecv {
     public void setSendService(SendService computeService) {
         this.sendService = computeService;
     }
+    @Resource(name = "kafka.brokers")
     public void setBootstrapServers(String bootstrapServers) {
         this.bootstrapServers = bootstrapServers;
     }
@@ -67,10 +74,14 @@ public class KafkaRecv {
                 consumer.subscribe(Arrays.asList(topic));
                 while (!closed.get()) {
                     ConsumerRecords<String, String> records = consumer.poll(2000);
-                    for (ConsumerRecord<String, String> record : records) {
+                    Collection<String> messages = new LinkedList<>();
+					for (ConsumerRecord<String, String> record : records) {
                         final String message = record.value();
                         logger.debug("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                         logger.info(" [x] Received '" + message + "'");
+                        messages.add(message);
+                    }
+                    for(String message : messages) {
                         try {
                             BusinessMessage businessMessage = new Gson().fromJson(message, BusinessMessage.class);
                             if(isSendingToNormalRoom(businessMessage)) {
@@ -89,6 +100,7 @@ public class KafkaRecv {
                 }
             } catch (WakeupException e) {
                 // Ignore exception if closing
+                logger.error("", e);
                 if (!closed.get()) {
                     throw e;
                 }
@@ -145,6 +157,7 @@ public class KafkaRecv {
         props.put("group.id", "from-business");
         props.put("enable.auto.commit", "true");
         props.put("auto.commit.interval.ms", "1000");
+        props.put("max.poll.records", "100000");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 

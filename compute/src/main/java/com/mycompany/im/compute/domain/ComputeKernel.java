@@ -19,6 +19,7 @@ import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 该类订阅从connector发来的某玩家消息，并判断该玩家是否被禁言或踢掉，如果没有则存储到redis里
@@ -103,7 +104,8 @@ public class ComputeKernel {
 
     private void handleIncomingMessage(Collection<String> messages, KeywordHandler keywordHandler) {
         Collection<ToPollingMessage> toPollingMessages = messages.stream()
-                .map(message -> JsonIterator.deserialize(message).as(FromConnectorMessage.class))
+                .map(message -> JsonIterator.deserialize(message).as(FromConnectorMessage[].class))
+                .flatMap(message -> Stream.of(message))
                 .filter(msg -> !silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId))
                 .map(msg -> {
                     String oldContent = (String) msg.params.get("content");

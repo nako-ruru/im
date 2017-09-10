@@ -9,9 +9,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Function;
 
 /**
  * Created by Administrator on 2017/8/7.
@@ -19,20 +21,14 @@ import java.util.concurrent.ScheduledExecutorService;
 public class AsyncClientTest {
 
     public static void main(String[] args) throws Exception {
-        int clientCount = 1;
-        long interval = 1000L;
-        String address = "localhost:6000";
- //      String address = "47.92.98.23:6000";
+        int clientCount = getOrDefault(args, 0, Integer::parseInt, 2);
+        int roomCount = getOrDefault(args, 1, Integer::parseInt, 2);
+        //      String defaultAddress = "47.92.98.23:6000";
+        String defaultAddress = "localhost:6000";
+        String address = getOrDefault(args, 2, Function.identity(), defaultAddress);
+        long interval = getOrDefault(args, 3, Long::parseLong, 1000L);
 
-        if(args.length >= 1) {
-            clientCount = Integer.parseInt(args[0]);
-        }
-        if(args.length >= 2) {
-            address = args[1];
-        }
-        if(args.length >= 3) {
-            interval = Long.parseLong(args[2]);
-        }
+        String[] roomIds = allRoomIds(roomCount);
 
         int colonIndex = address.indexOf(":");
         String host;
@@ -53,6 +49,7 @@ public class AsyncClientTest {
 
         for(int i = 0; i < clientCount; i++) {
             String userId = "userId" + i;
+            String roomId = roomIds[i % roomCount];
             try {
                 Bootstrap b = new Bootstrap(); // (1)
                 b.group(workerGroup); // (2)
@@ -61,7 +58,7 @@ public class AsyncClientTest {
                 b.handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new AsyncClientHandler(userId, scheduledExecutorService, finalInterval));
+                        ch.pipeline().addLast(new AsyncClientHandler(userId, roomId, scheduledExecutorService, finalInterval));
                     }
                 });
 
@@ -83,4 +80,17 @@ public class AsyncClientTest {
             AsyncClientTest.class.wait();
         }
     }
+
+    private static String[] allRoomIds(int roomCount) {
+        String[] roomIds = new String[roomCount];
+        for(int i = 0; i < roomIds.length; i++) {
+            roomIds[i] = UUID.randomUUID().toString();
+        }
+        return roomIds;
+    }
+
+    private static <T> T getOrDefault(String[] args, int i, Function<String, T> func, T defaultValue) {
+        return i < args.length ? func.apply(args[i]) : defaultValue;
+    }
+
 }

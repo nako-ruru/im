@@ -1,6 +1,5 @@
 package com.mycompany.im.util;
 
-import com.google.gson.Gson;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,26 +24,20 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
             "欢迎来到小美直播间，喜欢小美的朋友们点点关注"
     };
 
-    private static final String[] ROOM_IDS = new String[2];
-    static {
-        for(int i = 0; i < ROOM_IDS.length; i++) {
-            ROOM_IDS[i] = UUID.randomUUID().toString();
-        }
-    }
-
     private final String userId;
     private final ScheduledExecutorService scheduledExecutorService;
     private final long interval;
+    private final String roomId;
 
-    public AsyncClientHandler(String userId, ScheduledExecutorService scheduledExecutorService, long interval) {
+    public AsyncClientHandler(String userId, String roomId, ScheduledExecutorService scheduledExecutorService, long interval) {
         this.userId = userId;
+        this.roomId = roomId;
         this.scheduledExecutorService = scheduledExecutorService;
         this.interval = interval;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        String roomId = ROOM_IDS[ThreadLocalRandom.current().nextInt(ROOM_IDS.length)];
         register(ctx.channel(), userId, roomId);
         if(interval > 0) {
             scheduledExecutorService.scheduleWithFixedDelay(() -> {
@@ -89,6 +82,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                 "clientTime", System.currentTimeMillis()
         );
         writeMsg(out, params, 1);
+        out.flush();
     }
 
     private static void writeMsg(Channel out, Object o, int type) throws IOException {
@@ -102,10 +96,6 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
             map.put(keyValues[i * 2], keyValues[i * 2 + 1]);
         }
         return map;
-    }
-
-    private static String json(Object o) {
-        return new Gson().toJson(o);
     }
 
 }
