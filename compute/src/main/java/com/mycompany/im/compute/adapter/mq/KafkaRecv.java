@@ -26,7 +26,7 @@ public class KafkaRecv {
     
     private final AtomicBoolean closed = new AtomicBoolean(false);
     
-    private String topic = "connector";
+    private String topic;
     private String bootstrapServers;
 
     private ComputeService computeService;
@@ -50,6 +50,7 @@ public class KafkaRecv {
     public void setBootstrapServers(String bootstrapServers) {
         this.bootstrapServers = bootstrapServers;
     }
+    @Resource(name = "topic")
     public void setTopic(String topic) {
         this.topic = topic;
     }

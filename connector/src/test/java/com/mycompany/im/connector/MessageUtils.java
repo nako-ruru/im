@@ -98,7 +98,6 @@ public class MessageUtils {
      */
     public static void chat(DataOutput out, @Deprecated String roomId, String content, String nickname, int level) throws IOException {
         Map<String, Object> params = map(
-                "roomId", roomId,
                 "content", content,
                 "nickname", nickname,
                 "level", level

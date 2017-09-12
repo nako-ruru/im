@@ -78,8 +78,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                 "roomId", roomId,
                 "content", content,
                 "nickname", nickname,
-                "level", level,
-                "clientTime", System.currentTimeMillis()
+                "level", level
         );
         writeMsg(out, params, 1);
         out.flush();

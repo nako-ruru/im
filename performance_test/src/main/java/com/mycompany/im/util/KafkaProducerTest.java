@@ -1,7 +1,6 @@
 package com.mycompany.im.util;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 
@@ -17,7 +16,7 @@ public class KafkaProducerTest {
     private final KafkaProducer<String, String> producer;
     private KafkaProducerTest() {
         Properties props = new Properties();
-        props.put("bootstrap.servers", " 172.26.7.221:9092");
+        props.put("bootstrap.servers", " 47.92.68.14:9092");
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 65536);
@@ -31,11 +30,10 @@ public class KafkaProducerTest {
     void produce() {
         long start = System.currentTimeMillis();
         int messageNo = 1;
-        final int COUNT = 100000;
+        final int COUNT = 1000000;
+        StringBuilder data = new StringBuilder("hello kafka message ");
         while (messageNo < COUNT) {
-            String key = String.valueOf(messageNo);
-            String data = "hello kafka message " + key;
-            producer.send(new ProducerRecord<>(TOPIC, key, data));
+            data.append(messageNo);
             messageNo++;
         }
         producer.close();
