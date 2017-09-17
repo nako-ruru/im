@@ -1,6 +1,7 @@
 package com.mycompany.im.compute.application;
 
 import com.mycompany.im.compute.domain.ComputeKernel;
+import com.mycompany.im.compute.domain.FromConnectorMessage;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -15,8 +16,8 @@ public class ComputeService {
     @Resource
     private ComputeKernel computeKernel;
 
-    public void compute(Collection<String> message) {
-        computeKernel.compute(message);
+    public void compute(Collection<FromConnectorMessage> messages) {
+        computeKernel.compute(messages);
     }
 
 }

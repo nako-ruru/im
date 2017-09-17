@@ -3,7 +3,6 @@ package com.mycompany.im.compute.domain;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
-import com.jsoniter.JsonIterator;
 import com.mycompany.im.compute.adapter.persistence.redis.RedisMessageRepository;
 import com.mycompany.im.util.JedisPoolUtils;
 import org.slf4j.Logger;
@@ -16,10 +15,12 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import javax.annotation.Resource;
 import java.net.SocketException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 该类订阅从connector发来的某玩家消息，并判断该玩家是否被禁言或踢掉，如果没有则存储到redis里
@@ -98,17 +99,15 @@ public class ComputeKernel {
         }, "redis-sub").start();
     }
 
-    public void compute(Collection<String> message) {
+    public void compute(Collection<FromConnectorMessage> message) {
         handleIncomingMessage(message, keywordHandler);
     }
 
-    private void handleIncomingMessage(Collection<String> messages, KeywordHandler keywordHandler) {
+    private void handleIncomingMessage(Collection<FromConnectorMessage> messages, KeywordHandler keywordHandler) {
         Collection<ToPollingMessage> toPollingMessages = messages.stream()
-                .map(message -> JsonIterator.deserialize(message).as(FromConnectorMessage[].class))
-                .flatMap(message -> Stream.of(message))
                 .filter(msg -> !silencedList.containsEntry(msg.roomId, msg.userId) && !kickedList.containsEntry(msg.roomId, msg.userId))
                 .map(msg -> {
-                    String oldContent = (String) msg.params.get("content");
+                    String oldContent = msg.params.get("content");
                     String newContent = keywordHandler.handle(oldContent);
                     if(!Objects.equals(newContent, oldContent)) {
                         msg.params.put("content", newContent);

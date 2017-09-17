@@ -1,0 +1,17 @@
+syntax = "proto3";  //指定版本，必须要写（proto3、proto2）
+package com.mycompany.im.compute.domain;
+
+message FromConnectorMessage{
+    string messageId = 1;
+    string roomId = 2;
+    string userId = 3;
+    string nickname = 4;
+    int64 time = 5;
+    int32 level = 6;
+    int32 type = 7;
+    map<string, string> params = 8;
+}
+
+message FromConnectorMessages {
+    repeated FromConnectorMessage messages = 1;
+}

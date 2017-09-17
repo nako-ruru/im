@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ClientTest {
 
     public static void main(String... args) throws InterruptedException {
-        int clientCount = 10;
+        int clientCount = 1;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;

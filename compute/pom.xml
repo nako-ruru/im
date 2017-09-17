@@ -30,6 +30,13 @@
             <artifactId>jsoniter</artifactId>
             <version>0.9.15</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+
 
         <dependency>
             <groupId>redis.clients</groupId>

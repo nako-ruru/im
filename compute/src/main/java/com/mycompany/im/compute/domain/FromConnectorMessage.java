@@ -1,5 +1,7 @@
 package com.mycompany.im.compute.domain;
 
+import com.google.gson.Gson;
+
 import java.util.Map;
 
 /**
@@ -11,13 +13,13 @@ public class FromConnectorMessage {
     public final String roomId, userId, nickname;
     public final long time;
     public final int level, type;
-    public final Map<String, Object> params;
+    public final Map<String, String> params;
 
     private FromConnectorMessage() {
         this(null, null, null, null, 0, 0, null);
     }
 
-    public FromConnectorMessage(String messageId, String roomId, String userId, String nickname, int level, int type, Map<String, Object> params) {
+    public FromConnectorMessage(String messageId, String roomId, String userId, String nickname, int level, int type, Map<String, String> params) {
         this.messageId = messageId;
         this.roomId = roomId;
         this.userId = userId;
@@ -28,4 +30,8 @@ public class FromConnectorMessage {
         this.time = System.currentTimeMillis();
     }
 
+    @Override
+    public String toString() {
+        return new Gson().toJson(this);
+    }
 }

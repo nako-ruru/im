@@ -7,7 +7,7 @@
        http://www.springframework.org/schema/task
        http://www.springframework.org/schema/task/spring-task.xsd">
 
-   <task:annotation-driven/>
+    <task:annotation-driven/>
     <task:scheduler id="taskScheduler" pool-size="4"/>
 
     <task:scheduled-tasks scheduler="taskScheduler">

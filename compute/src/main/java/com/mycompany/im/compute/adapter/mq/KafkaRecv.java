@@ -1,6 +1,9 @@
 package com.mycompany.im.compute.adapter.mq;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.mycompany.im.compute.application.ComputeService;
+import com.mycompany.im.compute.domain.FromConnectorMessage;
+import com.mycompany.im.compute.domain.RoomMsgToCompute;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -8,6 +11,7 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -15,6 +19,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 /**
  * Created by Administrator on 2017/8/28.
@@ -57,7 +62,7 @@ public class KafkaRecv {
 
     private class KafkaConsumerRunner implements Runnable {
 
-        private KafkaConsumer<String, String> consumer;
+        private KafkaConsumer<String, byte[]> consumer;
 
         @Override
         public void run() {
@@ -65,18 +70,27 @@ public class KafkaRecv {
                 consumer = createKafkaConsumer();
                 consumer.subscribe(Arrays.asList(topic));
                 while (!closed.get()) {
-                    ConsumerRecords<String, String> records = consumer.poll(2000);
-                    Collection<String> messages = new LinkedList<>();
-                    for (ConsumerRecord<String, String> record : records) {
-                        final String message = record.value();
+                    ConsumerRecords<String, byte[]> records = consumer.poll(2000);
+                    Collection<FromConnectorMessage> messages = new LinkedList<>();
+                    for (ConsumerRecord<String, byte[]> record : records) {
+                        final byte[] data = record.value();
                         logger.debug("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
-                        logger.info(" [x] Received '" + message + "'");
-                        messages.add(message);
+                        try {
+                            RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(data);
+                            fromConnectorMessages.getMessagesList().stream()
+                                    .flatMap(Stream::of)
+                                    .map(m -> new FromConnectorMessage(m.getMessageId(), m.getRoomId(), m.getUserId(), m.getNickname(), m.getLevel(), m.getType(), m.getParamsMap()))
+                                    .forEach(messages::add);
+                        } catch (InvalidProtocolBufferException e) {
+                            logger.error("", e);
+                        }
                     }
-                    try {
-                        computeService.compute(messages);
-                    } catch(Exception e) {
-                        logger.error("", e);
+                    if(!CollectionUtils.isEmpty(messages)) {
+                        try {
+                            computeService.compute(messages);
+                        } catch(Exception e) {
+                            logger.error("", e);
+                        }
                     }
                 }
             } catch (WakeupException e) {
@@ -96,7 +110,7 @@ public class KafkaRecv {
         }
     }
 
-    private KafkaConsumer<String, String> createKafkaConsumer() {
+    private KafkaConsumer<String, byte[]> createKafkaConsumer() {
         Properties props = new Properties();
         props.put("bootstrap.servers", bootstrapServers);
         props.put("group.id", "jd-group");
@@ -104,7 +118,7 @@ public class KafkaRecv {
         props.put("auto.commit.interval.ms", "1000");
         props.put("max.poll.records", "100000");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
 
         return new KafkaConsumer<>(props);
     }

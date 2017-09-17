@@ -11,9 +11,9 @@ public class ToPollingMessage {
     public final String toRoomId, fromUserId, fromNickname;
     public final long time;
     public final int fromLevel, type;
-    public final Map<String, Object> params;
+    public final Map<String, String> params;
 
-    public ToPollingMessage(String messageId, String toRoomId, String fromUserId, String fromNickname, int fromLevel, int type, Map<String, Object> params) {
+    public ToPollingMessage(String messageId, String toRoomId, String fromUserId, String fromNickname, int fromLevel, int type, Map<String, String> params) {
         this.messageId = messageId;
         this.toRoomId = toRoomId;
         this.fromUserId = fromUserId;

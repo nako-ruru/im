@@ -1,6 +1,8 @@
 package com.mycompany.im.compute.adapter.mq;
 
+import com.google.gson.Gson;
 import com.mycompany.im.compute.application.ComputeService;
+import com.mycompany.im.compute.domain.FromConnectorMessage;
 import com.rabbitmq.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +53,7 @@ public class RabbitMqConsumer {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String message = new String(body, "UTF-8");
                 logger.info(" [x] Received '" + message + "'");
-                computeService.compute(Arrays.asList(message));
+                computeService.compute(Arrays.asList(new Gson().fromJson(message, FromConnectorMessage.class)));
             }
         };
         channel.basicConsume(QUEUE_NAME, true, consumer);

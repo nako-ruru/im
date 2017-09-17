@@ -1,6 +1,8 @@
 package com.mycompany.im.compute.adapter.mq;
 
+import com.google.gson.Gson;
 import com.mycompany.im.compute.application.ComputeService;
+import com.mycompany.im.compute.domain.FromConnectorMessage;
 import com.mycompany.im.util.JedisPoolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import javax.annotation.Resource;
 import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Administrator on 2017/8/28.
@@ -37,8 +40,11 @@ public class RedisMqConsumer {
                             logger.info(" [x] Received '" + message + "'");
                             messages2.add(message);
                         }
+                        List<FromConnectorMessage> collect = messages2.stream()
+                                .map(m -> new Gson().fromJson(m, FromConnectorMessage.class))
+                                .collect(Collectors.toList());
                         try {
-                            computeService.compute(messages2);
+                            computeService.compute(collect);
                         } catch (Exception e) {
                             logger.error("", e);
                         }
