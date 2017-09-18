@@ -79,7 +79,7 @@ public class KafkaRecv {
                             RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(data);
                             fromConnectorMessages.getMessagesList().stream()
                                     .flatMap(Stream::of)
-                                    .map(m -> new FromConnectorMessage(m.getMessageId(), m.getRoomId(), m.getUserId(), m.getNickname(), m.getLevel(), m.getType(), m.getParamsMap()))
+                                    .map(this::newMessage)
                                     .forEach(messages::add);
                         } catch (InvalidProtocolBufferException e) {
                             logger.error("", e);
@@ -104,23 +104,36 @@ public class KafkaRecv {
             }
         }
 
+        private FromConnectorMessage newMessage(RoomMsgToCompute.FromConnectorMessage m) {
+            return new FromConnectorMessage(
+                    m.getMessageId(), 
+                    m.getRoomId(),
+                    m.getUserId(),
+                    m.getNickname(), 
+                    m.getLevel(),
+                    m.getType(),
+                    m.getParamsMap(),
+                    m.getTime()
+            );
+        }
+
+        private KafkaConsumer<String, byte[]> createKafkaConsumer() {
+            Properties props = new Properties();
+            props.put("bootstrap.servers", bootstrapServers);
+            props.put("group.id", "jd-group");
+            props.put("enable.auto.commit", "true");
+            props.put("auto.commit.interval.ms", "1000");
+            props.put("max.poll.records", "100000");
+            props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+            props.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+
+            return new KafkaConsumer<>(props);
+        }
+
         // Shutdown hook which can be called from a separate thread
         public void shutdown() {
             consumer.wakeup();
         }
-    }
-
-    private KafkaConsumer<String, byte[]> createKafkaConsumer() {
-        Properties props = new Properties();
-        props.put("bootstrap.servers", bootstrapServers);
-        props.put("group.id", "jd-group");
-        props.put("enable.auto.commit", "true");
-        props.put("auto.commit.interval.ms", "1000");
-        props.put("max.poll.records", "100000");
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-
-        return new KafkaConsumer<>(props);
     }
     
 }

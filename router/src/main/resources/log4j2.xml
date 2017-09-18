@@ -7,7 +7,7 @@
 
 
     <Appenders>
-        <RollingRandomAccessFile name="FILE" fileName="logs/message.info.txt" filePattern="logs/message-%i.info.txt">
+        <RollingRandomAccessFile name="FILE" fileName="logs/router.info.txt" filePattern="logs/message-%i.info.txt">
             <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
             <SizeBasedTriggeringPolicy size="10 MB" />
         </RollingRandomAccessFile>
@@ -20,7 +20,7 @@
             <BurstFilter level="WARN" rate="160" maxBurst="1600"/>
         </Async>
 
-        <RollingRandomAccessFile name="ERROR_FILE" fileName="logs/message.error.txt" filePattern="logs/message-%d{yyyy-MM-dd}-%i.error.txt">
+        <RollingRandomAccessFile name="ERROR_FILE" fileName="logs/router.error.txt" filePattern="logs/message-%d{yyyy-MM-dd}-%i.error.txt">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10 MB" />

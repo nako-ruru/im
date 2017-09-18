@@ -27,7 +27,8 @@ public class RedisProducer {
                     "nickname001",
                     ThreadLocalRandom.current().nextInt(1, 100),
                     1,
-                    ImmutableMap.of("content", UUID.randomUUID().toString())
+                    ImmutableMap.of("content", UUID.randomUUID().toString()),
+                    System.currentTimeMillis()
             );
             jedis.rpush("connector", new Gson().toJson(msg));
             Thread.sleep(1000L);
