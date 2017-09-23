@@ -33,7 +33,7 @@
     </Appenders>
 
     <Loggers>
-        <logger name="com.mycompany.im.framework.spring" level="TRACE" additivity="false">
+        <logger name="com.mycompany.im.framework.spring" level="INFO" additivity="false">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>
             <AppenderRef ref="ERROR_FILE" level="ERROR"/>

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +25,13 @@ public class ComputeService {
     private ComputeKernel computeKernel;
 
     public void compute(Collection<FromConnectorMessage> messages) {
-        logger.info(" [x] Received '" + JsonStream.serialize(new Config.Builder().escapeUnicode(false).build(), messages)+ "'");
-        computeKernel.compute(messages);
+        if(!messages.isEmpty()) {
+            Collection<FromConnectorMessage> limit = messages.stream()
+                    .limit(10)
+                    .collect(Collectors.toCollection(LinkedList::new));
+            logger.info(" [x] Received '" + JsonStream.serialize(new Config.Builder().escapeUnicode(false).build(), limit)+ "'...");
+            computeKernel.compute(messages);
+        }
     }
 
 }

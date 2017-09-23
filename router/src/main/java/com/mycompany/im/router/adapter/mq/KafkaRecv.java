@@ -75,7 +75,7 @@ public class KafkaRecv {
                 while (!closed.get()) {
                     ConsumerRecords<String, String> records = consumer.poll(2000);
                     Collection<String> messages = new LinkedList<>();
-					for (ConsumerRecord<String, String> record : records) {
+                    for (ConsumerRecord<String, String> record : records) {
                         final String message = record.value();
                         logger.debug("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                         logger.info(" [x] Received '" + message + "'");
