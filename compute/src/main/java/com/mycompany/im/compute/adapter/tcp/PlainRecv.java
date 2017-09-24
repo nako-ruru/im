@@ -1,7 +1,6 @@
 package com.mycompany.im.compute.adapter.tcp;
 
 import com.github.fge.lambdas.runnable.ThrowingRunnable;
-import com.google.common.io.Closeables;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mycompany.im.compute.application.ComputeService;
 import com.mycompany.im.compute.domain.FromConnectorMessage;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.stream.Collectors;
@@ -38,39 +38,53 @@ public class PlainRecv {
         Thread t = new Thread((ThrowingRunnable)() -> {
             ServerSocket server = new ServerSocket(22222);
             while(true) {
-                Socket socket = server.accept();
-                Thread t2 = new Thread((ThrowingRunnable)() -> {
-                    InputStream in = socket.getInputStream();
-                    DataInputStream din = new DataInputStream(in);
-                    try {
-                        while(true) {
-                            int contentLength = din.readInt();
-                            byte[] bytes = new byte[contentLength];
-                            int read = 0;
-                            while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
+                try {
+                    Socket socket = server.accept();
+                    Thread t2 = new Thread(() -> {
+                        try {
+                            InputStream in = socket.getInputStream();
+                            DataInputStream din = new DataInputStream(in);
+                            while(true) {
+                                int contentLength = din.readInt();
+                                byte[] bytes = new byte[contentLength];
+                                int read = 0;
+                                while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
+                                }
+                                handle(bytes, 0, contentLength);
                             }
-                            //bytes = decompress(bytes);
+                        } catch (IOException e) {
+                            logger.error("", e);
+                        } finally {
                             try {
-                                RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(bytes);
-                                Collection<FromConnectorMessage> messages = fromConnectorMessages.getMessagesList().stream()
-                                        .flatMap(Stream::of)
-                                        .map(PlainRecv::newMessage)
-                                        .collect(Collectors.toCollection(LinkedList::new));
-                                computeService.compute(messages);
-                            } catch (InvalidProtocolBufferException e) {
+                                if(socket != null) {
+                                    socket.close();
+                                }
+                            } catch (IOException e) {
                                 logger.error("", e);
                             }
                         }
-                    } catch (IOException e) {
-                        logger.error("", e);
-                    } finally {
-                        Closeables.close(socket, true);
-                    }
-                });
-                t2.start();
+                    }, "plain-recv-consumer-" + socket.getRemoteSocketAddress());
+                    t2.start();
+                } catch(IOException e) {
+                    logger.error("", e);
+                }
             }
-        });
+        }, "plain-recv-listener");
         t.start();
+    }
+
+    private void handle(byte[] bytes, int offset, int length) {
+        //bytes = decompress(bytes);
+        try {
+            RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(ByteBuffer.wrap(bytes, offset, length));
+            Collection<FromConnectorMessage> messages = fromConnectorMessages.getMessagesList().stream()
+                    .flatMap(Stream::of)
+                    .map(PlainRecv::newMessage)
+                    .collect(Collectors.toCollection(LinkedList::new));
+            computeService.compute(messages);
+        } catch (InvalidProtocolBufferException e) {
+            logger.error("", e);
+        }
     }
 
     @Resource
@@ -91,7 +105,7 @@ public class PlainRecv {
         );
     }
 
-    public byte[] decompress(byte[] data) throws IOException, DataFormatException {
+    public byte[] decompress(byte[] data) throws DataFormatException {
         Inflater inflater = new Inflater();
         ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
         try {
@@ -107,7 +121,11 @@ public class PlainRecv {
             return output;
         } finally {
             inflater.end();
-            Closeables.close(out, true);
+            try {
+                out.close();
+            } catch(IOException e) {
+                logger.error("", e);
+            }
         }
     }
 }

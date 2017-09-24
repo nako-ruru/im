@@ -1,5 +1,7 @@
 package com.mycompany.im.compute.adapter.persistence.redis;
 
+import com.google.common.escape.Escaper;
+import com.google.common.escape.Escapers;
 import com.mycompany.im.compute.domain.MessageRepository;
 import com.mycompany.im.compute.domain.ToPollingMessage;
 import com.mycompany.im.util.JedisPoolUtils;
@@ -10,9 +12,6 @@ import redis.clients.jedis.ShardedJedisPool;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
-import org.apache.commons.lang3.text.translate.EntityArrays;
-import org.apache.commons.lang3.text.translate.LookupTranslator;
 
 /**
  * Created by Administrator on 2017/9/3.
@@ -20,15 +19,15 @@ import org.apache.commons.lang3.text.translate.LookupTranslator;
 @Component
 public class RedisMessageRepository implements MessageRepository {
 
-    private static final CharSequenceTranslator ESCAPE_JAVA =
-            new LookupTranslator(
-                    new String[][]{
-                        {"\"", "\\\""},
-                        {"\\", "\\\\"},
-                    }
-            ).with(
-                    new LookupTranslator(EntityArrays.JAVA_CTRL_CHARS_ESCAPE())
-            );
+    private static final Escaper ESCAPER = Escapers.builder()
+            .addEscape('"', "\\\"")
+            .addEscape('\\', "\\\\")
+            .addEscape('\b', "\\b")
+            .addEscape('\n', "\\n")
+            .addEscape('\t', "\\t")
+            .addEscape('\f', "\\f")
+            .addEscape('\r', "\\r")
+            .build();
     
     @Override
     public void save(Collection<ToPollingMessage> msgs) {
@@ -55,8 +54,8 @@ public class RedisMessageRepository implements MessageRepository {
         }
     }
 
-    private static String translate(CharSequence input) {
-        return ESCAPE_JAVA.translate(input);
+    private static String translate(String input) {
+        return ESCAPER.escape(input);
     }
 
 }
