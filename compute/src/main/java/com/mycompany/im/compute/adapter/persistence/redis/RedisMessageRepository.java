@@ -34,20 +34,31 @@ public class RedisMessageRepository implements MessageRepository {
         ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
         try(ShardedJedis shardedJedis = pool.getResource()) {
             ShardedJedisPipeline pipelined = shardedJedis.pipelined();
+            StringBuilder buffer = new StringBuilder();
             for(ToPollingMessage msg : msgs) {
+                buffer.setLength(0);
                 String paramText = msg.params.entrySet().stream()
-                        .map(entry -> String.format("\"%s\":\"%s\"", entry.getKey(), translate(entry.getValue())))
+                        .map(entry -> "\"" + entry.getKey() + "\":\"" + translate(entry.getValue()) + "\"")
                         .collect(Collectors.joining(",", "{", "}"));
-                String jsonText = String.format("{\"messageId\":%s, \"toRoomId\":%s, \"fromUserId\":%s, \"fromNickname\":%s, \"time\":%s, \"fromLevel\":%s, \"type\":%s, \"params\":%s}",
-                        "\"" + translate(msg.messageId) + "\"",
-                        "\"" + translate(msg.toRoomId) + "\"",
-                        "\"" + translate(msg.fromUserId) + "\"",
-                        "\"" + translate(msg.fromNickname) + "\"",
-                        msg.time,
-                        msg.fromLevel,
-                        msg.type,
-                        paramText
-                );
+                buffer
+                        .append("{")
+                        .append("\"messageId\":").append("\"").append(translate(msg.messageId)).append("\"")
+                        .append(", ")
+                        .append("\"toRoomId\":").append("\"").append(translate(msg.toRoomId)).append("\"")
+                        .append(", ")
+                        .append("\"fromUserId\":").append("\"").append(translate(msg.fromUserId)).append("\"")
+                        .append(", ")
+                        .append("\"fromNickname\":").append("\"").append(translate(msg.fromNickname)).append("\"")
+                        .append(", ")
+                        .append("\"time\":").append(msg.time)
+                        .append(", ")
+                        .append("\"fromLevel\":").append(msg.fromLevel)
+                        .append(", ")
+                        .append("\"type\":") .append(msg.type)
+                        .append(", ")
+                        .append("\"params\":").append(paramText)
+                        .append("}");
+                String jsonText = buffer.toString();
                 pipelined.zadd(msg.toRoomId, msg.time, jsonText);
             }
             pipelined.sync();
