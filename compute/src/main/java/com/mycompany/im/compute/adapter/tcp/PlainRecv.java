@@ -74,15 +74,15 @@ public class PlainRecv {
     }
 
     private void handle(byte[] bytes, int offset, int length) {
-        //bytes = decompress(bytes);
         try {
-            RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(ByteBuffer.wrap(bytes, offset, length));
+            bytes = decompress(bytes, offset, length);
+            RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(ByteBuffer.wrap(bytes));
             Collection<FromConnectorMessage> messages = fromConnectorMessages.getMessagesList().stream()
                     .flatMap(Stream::of)
                     .map(PlainRecv::newMessage)
                     .collect(Collectors.toCollection(LinkedList::new));
             computeService.compute(messages);
-        } catch (InvalidProtocolBufferException e) {
+        } catch (InvalidProtocolBufferException | DataFormatException e) {
             logger.error("", e);
         }
     }
@@ -105,11 +105,11 @@ public class PlainRecv {
         );
     }
 
-    public byte[] decompress(byte[] data) throws DataFormatException {
+    public byte[] decompress(byte[] data, int offset, int length) throws DataFormatException {
         Inflater inflater = new Inflater();
         ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
         try {
-            inflater.setInput(data);
+            inflater.setInput(data, offset, length);
             byte[] buffer = new byte[1024];
             while (!inflater.finished()) {
                 int count = inflater.inflate(buffer);

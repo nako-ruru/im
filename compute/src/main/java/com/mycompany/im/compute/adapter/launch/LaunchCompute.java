@@ -1,7 +1,5 @@
 package com.mycompany.im.compute.adapter.launch;
 
-import com.mycompany.im.compute.adapter.mq.KafkaRecv;
-import com.mycompany.im.compute.adapter.mq.RabbitMqConsumer;
 import com.mycompany.im.compute.adapter.mq.RedisMqConsumer;
 import com.mycompany.im.compute.adapter.tcp.PlainRecv;
 import com.mycompany.im.compute.domain.ComputeKernel;
@@ -16,9 +14,10 @@ public class LaunchCompute {
         applicationContext.start();
         applicationContext.getBean(ComputeKernel.class).start();
 
-        applicationContext.getBean(RabbitMqConsumer.class).start();
         applicationContext.getBean(RedisMqConsumer.class).start();
-        applicationContext.getBean(KafkaRecv.class).start();
+        /*
+        applicationContext.getBean(RabbitMqConsumer.class).start();
+        applicationContext.getBean(KafkaRecv.class).start();*/
         applicationContext.getBean(PlainRecv.class).start();
     }
 
