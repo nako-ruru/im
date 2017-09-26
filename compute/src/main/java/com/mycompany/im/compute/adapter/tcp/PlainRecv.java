@@ -63,7 +63,7 @@ public class PlainRecv {
                                 logger.error("", e);
                             }
                         }
-                    }, "plain-recv-consumer-" + socket.getRemoteSocketAddress());
+                    }, "plain-recv-" + socket.getRemoteSocketAddress());
                     t2.start();
                 } catch(IOException e) {
                     logger.error("", e);
@@ -128,4 +128,5 @@ public class PlainRecv {
             }
         }
     }
+    
 }

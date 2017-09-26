@@ -19,7 +19,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +36,8 @@ public class ComputeKernel {
     private final Multimap<String, String> kickedList = newConcurrentHashMultimap();
 
     private ShardedJedisPool pool;
+
+    private final BlockingQueue<ToPollingMessage> queue = new LinkedBlockingQueue<>();
 
     @Resource
     private KeywordHandler keywordHandler;
@@ -97,6 +101,26 @@ public class ComputeKernel {
                 }
             } while (true);
         }, "redis-sub").start();
+
+        new Thread(() -> {
+            int maxPollingSize = 10_0000;
+            do {
+                try {
+                    ToPollingMessage first = queue.take();
+                    Collection<ToPollingMessage> messages = new LinkedList();
+                    messages.add(first);
+                    queue.drainTo(messages, maxPollingSize - 1);
+
+                    logger.info("queue size: " + queue.size());
+
+                    messageRepository.save(messages);
+                } catch (InterruptedException e) {
+                    logger.error("", e);
+                } catch (Exception e) {
+                    logger.error("", e);
+                }
+            } while(true);
+        }, "redis-save").start();
     }
 
     public void compute(Collection<FromConnectorMessage> message) {
@@ -116,7 +140,8 @@ public class ComputeKernel {
                 })
                 .map(msg -> new ToPollingMessage(msg.messageId, msg.roomId, msg.userId, msg.nickname, msg.level, msg.type, msg.params))
                 .collect(Collectors.toCollection(LinkedList::new));
-        messageRepository.save(toPollingMessages);
+
+        queue.addAll(toPollingMessages);
     }
     
     private static <K, V> Multimap<K, V> newConcurrentHashMultimap() {
