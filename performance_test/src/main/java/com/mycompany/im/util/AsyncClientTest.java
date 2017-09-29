@@ -23,7 +23,7 @@ public class AsyncClientTest {
     public static void main(String[] args) throws Exception {
         int clientCount = getOrDefault(args, 0, Integer::parseInt, 2);
         int roomCount = getOrDefault(args, 1, Integer::parseInt, 2);
-        //      String defaultAddress = "47.92.98.23:6000";
+            //String defaultAddress = "47.92.98.23:6000";
         String defaultAddress = "localhost:6000";
         String address = getOrDefault(args, 2, Function.identity(), defaultAddress);
         long interval = getOrDefault(args, 3, Long::parseLong, 1000L);
@@ -90,7 +90,7 @@ public class AsyncClientTest {
     }
 
     private static <T> T getOrDefault(String[] args, int i, Function<String, T> func, T defaultValue) {
-        return i < args.length ? func.apply(args[i]) : defaultValue;
+        return Utils.getOrDefault(args, i, func, defaultValue);
     }
 
 }

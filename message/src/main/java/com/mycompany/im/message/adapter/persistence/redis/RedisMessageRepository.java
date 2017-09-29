@@ -26,6 +26,10 @@ public class RedisMessageRepository implements MessageRepository {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final int purgeRetainSize = 100;
+    private final long purgeFixedDelay = TimeUnit.SECONDS.toMillis(30L);
+    private final int querySize = 100;
+
     @Override
     public List<Message> findByRoomIdAndFromGreaterThan(String roomId, long from) {
         ShardedJedisPool pool = JedisPoolUtils.pool();
@@ -35,14 +39,15 @@ public class RedisMessageRepository implements MessageRepository {
                 return newEmptyMessages(roomId);
             }
 
-            Collection<Tuple> roomMessageTupleList = resource.zrevrangeWithScores(roomId, 0, 1000);
-            Collection<Tuple> worldMessageTupleList = resource.zrevrangeWithScores("world", 0, 1000);
+            Collection<Tuple> roomMessageTupleList = resource.zrevrangeWithScores(roomId, 0, querySize);
+            Collection<Tuple> worldMessageTupleList = resource.zrevrangeWithScores("world", 0, querySize);
             Collection<Message> roomMessageList = convertAndFilter(from, roomMessageTupleList);
             Collection<Message> worldMessageList = convertAndFilter(from, worldMessageTupleList);
 
             List<Message> values = Stream.of(roomMessageList, worldMessageList)
                     .flatMap(Collection::stream)
                     .sorted(Comparator.comparingLong(Message::getTime))
+                    .limit(querySize)
                     .collect(Collectors.toList());
 
             if(!values.isEmpty()) {
@@ -58,17 +63,14 @@ public class RedisMessageRepository implements MessageRepository {
         ShardedJedisPool pool = JedisPoolUtils.pool();
         try (ShardedJedis resource = pool.getResource()) {
 
-            Set<String> keys = resource.getAllShards().stream()
-                    .flatMap(jedis -> jedis.keys("*").stream())
-                    .collect(Collectors.toSet());
-            keys.add("world");
+            Set<String> keys = allRoomIdsWithWorld(resource);
             
             ShardedJedisPipeline pipelined = resource.pipelined();
 
-            long end = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+            long end = System.currentTimeMillis() - purgeFixedDelay;
             for(String key : keys) {
                 try {
-                    pipelined.zremrangeByRank(key, 0, -1001);
+                    pipelined.zremrangeByRank(key, 0, -(purgeRetainSize + 1));
                 } catch (Exception e) {
                     logger.error("", e);
                 }
@@ -83,6 +85,14 @@ public class RedisMessageRepository implements MessageRepository {
         }
     }
 
+    private static Set<String> allRoomIdsWithWorld(ShardedJedis resource) {
+        Set<String> keys = resource.getAllShards().stream()
+                .flatMap(jedis -> jedis.keys("*").stream())
+                .collect(Collectors.toSet());
+        keys.add("world");
+        return keys;
+    }
+
     private static List<Message> newEmptyMessages(String roomId) {
         Message message = new Message();
         message.setFromLevel(0);
@@ -94,7 +104,7 @@ public class RedisMessageRepository implements MessageRepository {
         return Arrays.asList(message);
     }
 
-    private Collection<Message> convertAndFilter(long from, Collection<Tuple> roomMessageTupleList) {
+    private static Collection<Message> convertAndFilter(long from, Collection<Tuple> roomMessageTupleList) {
         Gson gson = new Gson();
         return roomMessageTupleList.stream()
                 .filter(m -> from <= m.getScore())
