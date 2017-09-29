@@ -21,3 +21,5 @@
 /message/message.log
 /performance_test/.idea
 /performance_test/target
+/naming/target/
+/naming/logs

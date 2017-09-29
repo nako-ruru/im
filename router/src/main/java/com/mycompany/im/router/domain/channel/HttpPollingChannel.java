@@ -21,10 +21,11 @@ public class HttpPollingChannel implements Channel {
         try (ShardedJedis jedis = pool.getResource()) {
             ShardedJedisPipeline pipelined = jedis.pipelined();
             if(!Strings.isNullOrEmpty(message.toRoomId)) {
-                pipelined.zadd(message.toRoomId, message.time, new Gson().toJson(message));
+                pipelined.zadd("room-" + message.toRoomId, message.time, new Gson().toJson(message));
             }
             if(!Strings.isNullOrEmpty(message.toUserId)) {
-                pipelined.hset("user", message.toUserId, new Gson().toJson(message));
+                //pipelined.hset("user", message.toUserId, new Gson().toJson(message));
+                throw new UnsupportedOperationException();
             }
             pipelined.sync();
         }

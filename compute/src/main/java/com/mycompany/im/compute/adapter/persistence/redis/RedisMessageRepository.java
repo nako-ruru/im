@@ -59,7 +59,7 @@ public class RedisMessageRepository implements MessageRepository {
                         .append("\"params\":").append(paramText)
                         .append("}");
                 String jsonText = buffer.toString();
-                pipelined.zadd(msg.toRoomId, msg.time, jsonText);
+                pipelined.zadd("room-" + msg.toRoomId, msg.time, jsonText);
             }
             pipelined.sync();
         }

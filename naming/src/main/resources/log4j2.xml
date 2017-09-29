@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration monitorInterval="1" status="warn">
+    <!-- Don't forget to set system property
+    -DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
+    to make all loggers asynchronous. -->
+
+
+    <Appenders>
+        <RollingRandomAccessFile name="FILE" fileName="logs/naming.info.txt" filePattern="logs/compute-%i.info.txt">
+            <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
+            <SizeBasedTriggeringPolicy size="10 MB" />
+        </RollingRandomAccessFile>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
+        </Console>
+        <Async name="ASYNC">
+            <AppenderRef ref="FILE"/>
+            <AppenderRef ref="CONSOLE"/>
+            <BurstFilter level="WARN" rate="160" maxBurst="1600"/>
+        </Async>
+
+        <RollingRandomAccessFile name="ERROR_FILE" fileName="logs/naming.error.txt" filePattern="logs/compute-%d{yyyy-MM-dd}-%i.error.txt">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10 MB" />
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingRandomAccessFile>
+        <Async name="ERROR_ASYNC">
+            <AppenderRef ref="ERROR_FILE"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <logger name="com.mycompany.im.framework.spring" level="INFO" additivity="false">
+            <AppenderRef ref="FILE"/>
+            <AppenderRef ref="CONSOLE"/>
+            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+        </logger>
+
+        <logger name="org.springframework" level="WARN" additivity="false">
+            <AppenderRef ref="FILE"/>
+            <AppenderRef ref="CONSOLE"/>
+            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+        </logger>
+
+        <Root includeLocation="true" level="INFO">
+            <AppenderRef ref="FILE"/>
+            <AppenderRef ref="CONSOLE"/>
+            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>

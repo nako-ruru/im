@@ -39,8 +39,8 @@ public class RedisMessageRepository implements MessageRepository {
                 return newEmptyMessages(roomId);
             }
 
-            Collection<Tuple> roomMessageTupleList = resource.zrevrangeWithScores(roomId, 0, querySize);
-            Collection<Tuple> worldMessageTupleList = resource.zrevrangeWithScores("world", 0, querySize);
+            Collection<Tuple> roomMessageTupleList = resource.zrevrangeWithScores("room-" + roomId, 0, querySize);
+            Collection<Tuple> worldMessageTupleList = resource.zrevrangeWithScores("room-world", 0, querySize);
             Collection<Message> roomMessageList = convertAndFilter(from, roomMessageTupleList);
             Collection<Message> worldMessageList = convertAndFilter(from, worldMessageTupleList);
 
@@ -87,9 +87,8 @@ public class RedisMessageRepository implements MessageRepository {
 
     private static Set<String> allRoomIdsWithWorld(ShardedJedis resource) {
         Set<String> keys = resource.getAllShards().stream()
-                .flatMap(jedis -> jedis.keys("*").stream())
+                .flatMap(jedis -> jedis.keys("room-*").stream())
                 .collect(Collectors.toSet());
-        keys.add("world");
         return keys;
     }
 
