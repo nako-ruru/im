@@ -6,6 +6,7 @@
 package com.mycompany.im.naming.spring.mvc;
 
 import com.mycompany.im.naming.application.NamingQuery;
+import com.mycompany.im.naming.application.NamingQueryResult;
 import java.util.List;
 import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +24,7 @@ public class NamingController {
     private NamingQuery namingQuery;
     
     @RequestMapping(method = RequestMethod.GET)
-    public List<String> servers(String serverType) {
+    public List<NamingQueryResult> servers(String serverType) {
         return namingQuery.servers(serverType);
     }
 }

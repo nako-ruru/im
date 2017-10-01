@@ -24,7 +24,7 @@ public class RedisNamingRepository implements NamingRepository {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public List<String> servers(String serverType) {
+    public List<NamingInfo> servers(String serverType) {
         ShardedJedis resource = JedisPoolUtils.shardedJedisPool().getResource();
         Map<String, String> servers = resource.hgetAll(serverType);
         
@@ -43,14 +43,12 @@ public class RedisNamingRepository implements NamingRepository {
                 .filter(server -> server.getValue().registerTime >= from)
                 .sorted(Comparator.comparing(server -> server.getValue().connectedClients))
                 .limit(5)
-                .map(Map.Entry::getKey)
+                .map(entry -> {
+                    final NamingInfo info = entry.getValue();
+                    info.address = entry.getKey();
+                    return info;
+                })
                 .collect(Collectors.toCollection(LinkedList::new));
-    }
-    
-    private static class NamingInfo {
-	long registerTime;
-	int loginUsers;
-	int connectedClients;
     }
     
 }

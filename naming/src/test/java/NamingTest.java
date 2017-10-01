@@ -1,4 +1,5 @@
 
+import com.mycompany.im.naming.application.NamingQueryResult;
 import com.mycompany.im.naming.spring.mvc.NamingController;
 import java.util.Collection;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -19,7 +20,7 @@ public class NamingTest {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
                 "config.xml", "framework.xml"
         );
-        Collection<String> servers = applicationContext.getBean(NamingController.class).servers("go-servers");
+        Collection<NamingQueryResult> servers = applicationContext.getBean(NamingController.class).servers("go-servers");
         System.err.println(servers);
     }
     

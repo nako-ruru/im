@@ -160,7 +160,7 @@
                 </excludes>
             </resource>
         </resources>
-        <finalName>router</finalName>
+        <finalName>naming</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

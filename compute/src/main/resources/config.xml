@@ -22,5 +22,8 @@
     <bean id="topic" class="java.lang.String">
         <constructor-arg value="${topic}"/>
     </bean>
+    <bean id="plain.tcp.listen.port" class="java.lang.String">
+        <constructor-arg value="${plain.tcp.listen.port}"/>
+    </bean>
 
 </beans>

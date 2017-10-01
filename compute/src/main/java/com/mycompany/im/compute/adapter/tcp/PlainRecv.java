@@ -33,10 +33,12 @@ public class PlainRecv {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private ComputeService computeService;
+    @Resource(name = "plain.tcp.listen.port")
+    private int listenPort;
 
     public void start() {
         Thread t = new Thread((ThrowingRunnable)() -> {
-            ServerSocket server = new ServerSocket(22222);
+            ServerSocket server = new ServerSocket(listenPort);
             while(true) {
                 try {
                     Socket socket = server.accept();
