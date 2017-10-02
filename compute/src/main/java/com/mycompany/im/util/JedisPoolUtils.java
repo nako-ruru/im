@@ -18,6 +18,9 @@ import java.util.stream.Stream;
  * @author Administrator
  */
 public class JedisPoolUtils {
+    
+    protected static final int DEFAULT_TIMEOUT = 2000;
+    protected static final int DEFAULT_MAX_REDIRECTIONS = 5;
 
     private static final Object lock = new Object();
     private static volatile JedisCluster cluster;
@@ -31,7 +34,15 @@ public class JedisPoolUtils {
                     Set<HostAndPort> hostAndPorts = hostPortPasswords.stream()
                             .map(hpp -> new HostAndPort(hpp.host, hpp.port))
                             .collect(Collectors.toSet());
-                    cluster = new JedisCluster(hostAndPorts, new JedisPoolConfig());
+                    HostPortPassword hostPortPassword = readHostPortPasswords().iterator().next();
+                    cluster = new JedisCluster(
+                            hostAndPorts,
+                            DEFAULT_TIMEOUT, 
+                            DEFAULT_TIMEOUT, 
+                            DEFAULT_MAX_REDIRECTIONS, 
+                            hostPortPassword.password, 
+                            new JedisPoolConfig()
+                    );
                 }
             }
         }

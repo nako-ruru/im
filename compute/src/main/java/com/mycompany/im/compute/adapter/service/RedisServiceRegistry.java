@@ -9,15 +9,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.compute.domain.ServiceRegistry;
 import com.mycompany.im.util.JedisPoolUtils;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.Map;
-import javax.annotation.Resource;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
+import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisShardInfo;
-import redis.clients.jedis.ShardedJedis;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Map;
 
 /**
  *
@@ -33,10 +34,9 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
 
     @Override
     public void register() {
-       try(ShardedJedis jedis = JedisPoolUtils.shardedJedisPool().getResource()) {
-           Map map = ImmutableMap.of("registerTime", System.currentTimeMillis());
-           jedis.hset("compute-servers", registryAddress, new Gson().toJson(map));
-       }
+        JedisCluster jedis = JedisPoolUtils.jedisCluster();
+        Map map = ImmutableMap.of("registerTime", System.currentTimeMillis());
+        jedis.hset("compute-servers", registryAddress, new Gson().toJson(map));
     }
     
     private String resolveAddress() {
