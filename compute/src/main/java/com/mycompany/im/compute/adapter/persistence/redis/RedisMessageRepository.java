@@ -4,14 +4,15 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.mycompany.im.compute.domain.MessageRepository;
 import com.mycompany.im.compute.domain.ToPollingMessage;
-import com.mycompany.im.util.JedisPoolUtils;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPipeline;
-import redis.clients.jedis.ShardedJedisPool;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * Created by Administrator on 2017/9/3.
@@ -29,12 +30,14 @@ public class RedisMessageRepository implements MessageRepository {
             .addEscape('\r', "\\r")
             .build();
     
+    @Resource
+    private StringRedisTemplate redisTemplate;
+    
     @Override
     public void save(Collection<ToPollingMessage> msgs) {
-        ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
-        try(ShardedJedis shardedJedis = pool.getResource()) {
-            ShardedJedisPipeline pipelined = shardedJedis.pipelined();
-            StringBuilder buffer = new StringBuilder();
+        StringBuilder buffer = new StringBuilder();
+        redisTemplate.executePipelined((RedisConnection connection) -> {
+            StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
             for(ToPollingMessage msg : msgs) {
                 buffer.setLength(0);
                 String paramText = msg.params.entrySet().stream()
@@ -59,10 +62,10 @@ public class RedisMessageRepository implements MessageRepository {
                         .append("\"params\":").append(paramText)
                         .append("}");
                 String jsonText = buffer.toString();
-                pipelined.zadd("room-" + msg.toRoomId, msg.time, jsonText);
+                stringRedisConn.zAdd("room-" + msg.toRoomId, msg.time, jsonText);
             }
-            pipelined.sync();
-        }
+            return null;
+        });
     }
 
     private static String translate(String input) {

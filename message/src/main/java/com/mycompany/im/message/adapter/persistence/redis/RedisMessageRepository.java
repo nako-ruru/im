@@ -4,20 +4,19 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.message.domain.Message;
 import com.mycompany.im.message.domain.MessageRepository;
-import com.mycompany.im.util.JedisPoolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPool;
-import redis.clients.jedis.Tuple;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
+import javax.annotation.Resource;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 
 /**
  * Created by Administrator on 2017/5/29.
@@ -30,68 +29,59 @@ public class RedisMessageRepository implements MessageRepository {
     private final int purgeRetainSize = 100;
     private final long purgeFixedDelay = TimeUnit.SECONDS.toMillis(30L);
     private final int querySize = 100;
+    
+    @Resource
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public List<Message> findByRoomIdAndFromGreaterThan(String roomId, long from) {
-        ShardedJedisPool pool = JedisPoolUtils.pool();
-        try (ShardedJedis resource = pool.getResource()) {
+        if(from == 0L) {
+            return newEmptyMessages(roomId);
+        }
 
-            if(from == 0L) {
-                return newEmptyMessages(roomId);
-            }
+        ZSetOperations<String, String> opsForZSet = redisTemplate.opsForZSet();
+        Collection<ZSetOperations.TypedTuple<String>> roomMessageTupleList = opsForZSet.reverseRangeWithScores("room-" + roomId, 0, querySize);
+        Collection<ZSetOperations.TypedTuple<String>> worldMessageTupleList = opsForZSet.reverseRangeWithScores("room-world", 0, querySize);
+        Collection<Message> roomMessageList = convertAndFilter(from, roomMessageTupleList);
+        Collection<Message> worldMessageList = convertAndFilter(from, worldMessageTupleList);
 
-            Collection<Tuple> roomMessageTupleList = resource.zrevrangeWithScores("room-" + roomId, 0, querySize);
-            Collection<Tuple> worldMessageTupleList = resource.zrevrangeWithScores("room-world", 0, querySize);
-            Collection<Message> roomMessageList = convertAndFilter(from, roomMessageTupleList);
-            Collection<Message> worldMessageList = convertAndFilter(from, worldMessageTupleList);
+        List<Message> values = Stream.of(roomMessageList, worldMessageList)
+                .flatMap(Collection::stream)
+                .sorted(Comparator.comparingLong(Message::getTime))
+                .limit(querySize)
+                .collect(Collectors.toList());
 
-            List<Message> values = Stream.of(roomMessageList, worldMessageList)
-                    .flatMap(Collection::stream)
-                    .sorted(Comparator.comparingLong(Message::getTime))
-                    .limit(querySize)
-                    .collect(Collectors.toList());
-
-            if(!values.isEmpty()) {
-                return values;
-            } else {
-                return newEmptyMessages(roomId);
-            }
+        if(!values.isEmpty()) {
+            return values;
+        } else {
+            return newEmptyMessages(roomId);
         }
     }
 
     @Override
     public void purge() {
-        ShardedJedisPool pool = JedisPoolUtils.pool();
-        try (ShardedJedis resource = pool.getResource()) {
-            Collection<Jedis> allShards = resource.getAllShards();
-            
-            for(Jedis jedis : allShards) {
-                Set<String> keys = allRoomIdsWithWorld(jedis);
-                
-                Pipeline pipelined = jedis.pipelined();
-
-                long end = System.currentTimeMillis() - purgeFixedDelay;
-                for(String key : keys) {
-                    try {
-                        pipelined.zremrangeByRank(key, 0, -(purgeRetainSize + 1));
-                    } catch (Exception e) {
-                        logger.error("", e);
-                    }
-                    try {
-                        pipelined.zremrangeByScore(key, 0, end);
-                    } catch (Exception e) {
-                        logger.error("", e);
-                    }
+        Set<String> keys = allRoomIdsWithWorld();
+        long end = System.currentTimeMillis() - purgeFixedDelay;
+        redisTemplate.executePipelined((RedisConnection connection) -> {
+            StringRedisConnection conn = (StringRedisConnection) connection;
+            for(String key : keys) {
+                try {
+                    conn.zRemRange(key, 0, -(purgeRetainSize + 1));
+                } catch (Exception e) {
+                    logger.error("", e);
                 }
-
-                pipelined.sync();
+                try {
+                    conn.zRemRangeByScore(key, 0, end);
+                } catch (Exception e) {
+                    logger.error("", e);
+                }
             }
-            
-        }
+            return null;
+        });
     }
 
-    private static Set<String> allRoomIdsWithWorld(Jedis jedis) {
-        return jedis.keys("room-*");
+    private Set<String> allRoomIdsWithWorld() {
+        return redisTemplate.keys("room-*");
     }
 
     private static List<Message> newEmptyMessages(String roomId) {
@@ -105,11 +95,11 @@ public class RedisMessageRepository implements MessageRepository {
         return Arrays.asList(message);
     }
 
-    private static Collection<Message> convertAndFilter(long from, Collection<Tuple> roomMessageTupleList) {
+    private static Collection<Message> convertAndFilter(long from, Collection<ZSetOperations.TypedTuple<String>> roomMessageTupleList) {
         Gson gson = new Gson();
         return roomMessageTupleList.stream()
                 .filter(m -> from <= m.getScore())
-                .map(v -> gson.fromJson(v.getElement(), Message.class))
+                .map(v -> gson.fromJson(v.getValue(), Message.class))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
