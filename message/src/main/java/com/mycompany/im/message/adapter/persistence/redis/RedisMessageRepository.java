@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPipeline;
 import redis.clients.jedis.ShardedJedisPool;
 import redis.clients.jedis.Tuple;
 
@@ -17,6 +16,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 
 /**
  * Created by Administrator on 2017/5/29.
@@ -62,34 +63,35 @@ public class RedisMessageRepository implements MessageRepository {
     public void purge() {
         ShardedJedisPool pool = JedisPoolUtils.pool();
         try (ShardedJedis resource = pool.getResource()) {
-
-            Set<String> keys = allRoomIdsWithWorld(resource);
+            Collection<Jedis> allShards = resource.getAllShards();
             
-            ShardedJedisPipeline pipelined = resource.pipelined();
+            for(Jedis jedis : allShards) {
+                Set<String> keys = allRoomIdsWithWorld(jedis);
+                
+                Pipeline pipelined = jedis.pipelined();
 
-            long end = System.currentTimeMillis() - purgeFixedDelay;
-            for(String key : keys) {
-                try {
-                    pipelined.zremrangeByRank(key, 0, -(purgeRetainSize + 1));
-                } catch (Exception e) {
-                    logger.error("", e);
+                long end = System.currentTimeMillis() - purgeFixedDelay;
+                for(String key : keys) {
+                    try {
+                        pipelined.zremrangeByRank(key, 0, -(purgeRetainSize + 1));
+                    } catch (Exception e) {
+                        logger.error("", e);
+                    }
+                    try {
+                        pipelined.zremrangeByScore(key, 0, end);
+                    } catch (Exception e) {
+                        logger.error("", e);
+                    }
                 }
-                try {
-                    pipelined.zremrangeByScore(key, 0, end);
-                } catch (Exception e) {
-                    logger.error("", e);
-                }
+
+                pipelined.sync();
             }
-                  
-            pipelined.sync();
+            
         }
     }
 
-    private static Set<String> allRoomIdsWithWorld(ShardedJedis resource) {
-        Set<String> keys = resource.getAllShards().stream()
-                .flatMap(jedis -> jedis.keys("room-*").stream())
-                .collect(Collectors.toSet());
-        return keys;
+    private static Set<String> allRoomIdsWithWorld(Jedis jedis) {
+        return jedis.keys("room-*");
     }
 
     private static List<Message> newEmptyMessages(String roomId) {

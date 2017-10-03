@@ -9,16 +9,17 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.compute.domain.ServiceRegistry;
 import com.mycompany.im.util.JedisPoolUtils;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Service;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisShardInfo;
-
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
+import javax.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Service;
+import redis.clients.jedis.JedisShardInfo;
+import redis.clients.jedis.ShardedJedis;
 
 /**
  *
@@ -26,6 +27,8 @@ import java.util.Map;
  */
 @Service
 public class RedisServiceRegistry implements ServiceRegistry, ApplicationListener<ApplicationEvent> {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     
     @Resource(name = "plain.tcp.listen.port")
     private int listenPort;
@@ -34,9 +37,18 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
 
     @Override
     public void register() {
-        JedisCluster jedis = JedisPoolUtils.jedisCluster();
-        Map map = ImmutableMap.of("registerTime", System.currentTimeMillis());
-        jedis.hset("compute-servers", registryAddress, new Gson().toJson(map));
+        registerIfRigstryAddressResolved();
+    }
+
+    private void registerIfRigstryAddressResolved() {
+        if(registryAddress != null) {
+            try(ShardedJedis jedis = JedisPoolUtils.shardedJedisPool().getResource()) {
+                Map map = ImmutableMap.of("registerTime", System.currentTimeMillis());
+                final String value = new Gson().toJson(map);
+                logger.info("register: key: " + registryAddress + "; value: " + value);
+                jedis.hset("compute-servers", registryAddress, value);
+            }
+        }
     }
     
     private String resolveAddress() {
@@ -56,6 +68,7 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
         registryAddress = resolveAddress();
+        logger.info("resolve ip: " + registryAddress);
     }
     
 }

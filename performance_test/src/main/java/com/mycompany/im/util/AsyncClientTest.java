@@ -48,7 +48,7 @@ public class AsyncClientTest {
         EventLoopGroup workerGroup = new NioEventLoopGroup(0, executor);
 
         for(int i = 0; i < clientCount; i++) {
-            String userId = "userId" + i;
+            String userId = String.format("userId[%s][%s]", i, UUID.randomUUID().toString());
             String roomId = roomIds[i % roomCount];
             try {
                 Bootstrap b = new Bootstrap(); // (1)

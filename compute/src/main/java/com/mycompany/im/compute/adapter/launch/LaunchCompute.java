@@ -11,7 +11,6 @@ public class LaunchCompute {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
                 "framework.xml", "performance-monitor.xml", /*"dubbo.xml",*/ "config.xml", "scheduled.xml"
         );
-        applicationContext.start();
         applicationContext.getBean(ComputeKernel.class).start();
 
         applicationContext.getBean(RedisMqConsumer.class).start();

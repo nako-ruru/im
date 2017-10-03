@@ -26,6 +26,7 @@ public class MessageQuery {
 
     private static MessageResult convert(Message message) {
         return new MessageResult(
+                message.getMessageId(), 
                 message.getToRoomId(),
                 message.getFromUserId(),
                 message.getType(),
