@@ -49,10 +49,10 @@ public class SendService {
     }
     
     private static class MessageIdGenerator {
-        private final AtomicLong longAdder = new AtomicLong();
+        private final AtomicLong atomic = new AtomicLong();
         private final String nodeId = UUID.randomUUID().toString();
         public String nextMessageId() {
-            return String.format("[%s][%s]", longAdder.getAndIncrement(), nodeId);
+            return String.format("[%s][%s]", atomic.getAndIncrement(), nodeId);
         }
     }
 

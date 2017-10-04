@@ -1,5 +1,7 @@
 package com.mycompany.im.router.domain;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -10,6 +12,7 @@ public class Payload {
     public final String messageId;
     public final String toRoomId, toUserId;
     public final long time;
+    public final String timeText;
     public final int type;
     public final Map<String, Object> params;
 
@@ -20,6 +23,7 @@ public class Payload {
         this.params = params;
         this.type = type;
         time = System.currentTimeMillis();
+        timeText = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date(time));
     }
 
 }
