@@ -7,12 +7,14 @@ import java.util.Map;
  */
 public class Payload {
 
+    public final String messageId;
     public final String toRoomId, toUserId;
     public final long time;
     public final int type;
     public final Map<String, Object> params;
 
-    public Payload(String toRoomId, String toUserId, int type, Map<String, Object> params) {
+    public Payload(String messageId, String toRoomId, String toUserId, int type, Map<String, Object> params) {
+        this.messageId = messageId;
         this.toRoomId = toRoomId;
         this.toUserId = toUserId;
         this.params = params;

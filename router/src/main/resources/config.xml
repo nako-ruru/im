@@ -11,7 +11,7 @@
         <property name="locations">
             <list>
                 <value>classpath:router.properties</value>
-                <value>file:///opt/im_compute/config/router.properties</value>
+                <value>file:///opt/config/router.properties</value>
             </list>
         </property>
     </bean>

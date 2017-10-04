@@ -35,8 +35,6 @@ public class ComputeKernel {
     private final Multimap<String, String> silencedList = newConcurrentHashMultimap();
     private final Multimap<String, String> kickedList = newConcurrentHashMultimap();
 
-    private ShardedJedisPool pool;
-
     private final BlockingQueue<ToPollingMessage> queue = new LinkedBlockingQueue<>();
 
     @Resource
@@ -50,8 +48,6 @@ public class ComputeKernel {
         RoomManagementQuery.RoomManagementInfo roomManagementInfo = roomManagementQuery.query();
         silencedList.putAll(roomManagementInfo.getSilenceList());
         kickedList.putAll(roomManagementInfo.getKickList());
-
-        pool = JedisPoolUtils.shardedJedisPool();
         
         new Thread(() -> {
             Jedis jedis = JedisPoolUtils.jedis();
