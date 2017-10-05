@@ -22,14 +22,19 @@ public class RouterPerformanceTest {
     
     public static void main(String... args) {
         String routerHost = Utils.getOrDefault(args, 0, Function.identity(), "47.92.68.14:8080/router");
-        long intervalInMilli = Utils.getOrDefault(args, 1, Long::parseLong, 50L);
+        String roomId = Utils.getOrDefault(args, 0, Function.identity(), "500");
+        long intervalInMilli = Utils.getOrDefault(args, 1, Long::parseLong, 500L);
         
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(30);
         scheduledExecutorService.scheduleAtFixedRate(() -> {
             HttpURLConnection httpCon = null;
             try {
-                URL url = new URL(String.format("http://%s/send?toRoomId=500&importance=0&content=%s", routerHost, URLEncoder.encode(KafkaFiles.CONTENT, "UTF-8")));
-                httpCon = (HttpURLConnection) url.openConnection();
+                final String u = String.format("http://%s/send?toRoomId=%s&importance=0&content=%s",
+                        routerHost, 
+                        URLEncoder.encode(roomId, "UTF-8"),
+                        URLEncoder.encode(KafkaFiles.CONTENT, "UTF-8")
+                );
+                httpCon = (HttpURLConnection) new URL(u).openConnection();
                 httpCon.setDoOutput(true);
                 httpCon.setRequestMethod("POST");
                 System.out.println(httpCon.getResponseCode());
