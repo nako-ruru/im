@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.message.domain.Message;
 import com.mycompany.im.message.domain.MessageRepository;
+import java.lang.reflect.Field;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -15,8 +16,15 @@ import java.util.stream.Stream;
 import javax.annotation.Resource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import redis.clients.jedis.BinaryJedisCluster;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisSlotBasedConnectionHandler;
+import redis.clients.jedis.Pipeline;
+import redis.clients.util.JedisClusterCRC16;
 
 /**
  * Created by Administrator on 2017/5/29.
@@ -60,24 +68,7 @@ public class RedisMessageRepository implements MessageRepository {
 
     @Override
     public void purge() {
-        Set<String> keys = allRoomIdsWithWorld();
-        long end = System.currentTimeMillis() - purgeFixedDelay;
-        redisTemplate.executePipelined((RedisConnection connection) -> {
-            StringRedisConnection conn = (StringRedisConnection) connection;
-            for(String key : keys) {
-                try {
-                    conn.zRemRange(key, 0, -(purgeRetainSize + 1));
-                } catch (Exception e) {
-                    logger.error("", e);
-                }
-                try {
-                    conn.zRemRangeByScore(key, 0, end);
-                } catch (Exception e) {
-                    logger.error("", e);
-                }
-            }
-            return null;
-        });
+        executePipelined();
     }
 
     private Set<String> allRoomIdsWithWorld() {
@@ -101,6 +92,50 @@ public class RedisMessageRepository implements MessageRepository {
                 .filter(m -> from <= m.getScore())
                 .map(v -> gson.fromJson(v.getValue(), Message.class))
                 .collect(Collectors.toCollection(LinkedList::new));
+    }
+    private void executePipelined() {
+        JedisClusterConnection jedisClusterConnection = (JedisClusterConnection)redisTemplate.getConnectionFactory().getClusterConnection();
+        JedisCluster jedisCluster = jedisClusterConnection.getNativeConnection();
+        JedisSlotBasedConnectionHandler jedisClusterConnectionHandler = getJedisSlotBasedConnectionHandler(jedisCluster);
+        
+        Set<String> keys = allRoomIdsWithWorld();
+        
+        Map<Integer, List<String>> group = keys.stream()
+                .collect(Collectors.groupingBy(key -> JedisClusterCRC16.getSlot(key)));
+        
+        long end = System.currentTimeMillis() - purgeFixedDelay;
+        
+        for(Map.Entry<Integer, List<String>> entry : group.entrySet()) {
+            try (Jedis connection = jedisClusterConnectionHandler.getConnectionFromSlot(entry.getKey())) {
+                Pipeline pipeline = connection.pipelined();
+                
+                for(String key : entry.getValue()) {
+                    try {
+                        pipeline.zremrangeByRank(key, 0, -(purgeRetainSize + 1));
+                    } catch (Exception e) {
+                        logger.error("", e);
+                    }
+                    try {
+                        pipeline.zremrangeByScore(key, 0, end);
+                    } catch (Exception e) {
+                        logger.error("", e);
+                    }
+                }
+                pipeline.sync();
+            }
+        }
+    }
+    
+    private static JedisSlotBasedConnectionHandler getJedisSlotBasedConnectionHandler(JedisCluster cluster) {
+        try {
+            Field field = BinaryJedisCluster.class.getDeclaredField("connectionHandler");
+            if(!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+            return (JedisSlotBasedConnectionHandler) field.get(cluster);
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
     }
 
 }
