@@ -33,7 +33,7 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
     
     @Resource(name = "plain.tcp.listen.port")
     private int listenPort;
-    @Resource(name = "namingRedisTemplate")
+    @Resource(name = "registryRedisTemplate")
     private StringRedisTemplate redisTemplate;
     
     private String registryAddress;

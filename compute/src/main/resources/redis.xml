@@ -11,24 +11,9 @@
         <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
     </bean>
     
-    <bean id="redisClusterConfig" class="org.springframework.data.redis.connection.RedisClusterConfiguration">
+    <bean id="redisClusterConfig" class="com.mycompany.im.framework.spring.MyRedisClusterConfiguration">
        <property name="maxRedirects" value="3" />  
-       <property name="clusterNodes">
-            <set>  
-                <bean class="org.springframework.data.redis.connection.RedisNode">
-                    <constructor-arg name="host" value="192.168.10.108"></constructor-arg>
-                    <constructor-arg name="port" value="9921"></constructor-arg>
-                </bean>
-                <bean class="org.springframework.data.redis.connection.RedisNode">
-                    <constructor-arg name="host" value="192.168.10.108"></constructor-arg>
-                    <constructor-arg name="port" value="9922"></constructor-arg>
-                </bean>
-                <bean class="org.springframework.data.redis.connection.RedisNode">
-                    <constructor-arg name="host" value="192.168.10.108"></constructor-arg>
-                    <constructor-arg name="port" value="9923"></constructor-arg>
-                </bean>
-           </set>
-       </property>
+       <property name="clusterNodesDesc" value="${redis.message}"/>
    </bean>  
 
     <bean id="messageJedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
@@ -40,7 +25,7 @@
 
     <bean id="messageRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
         <property name="connectionFactory" ref="messageJedisConnectionFactory" />
-<!--         如果不配置Serializer，那么存储的时候智能使用String，如果用User类型存储，那么会提示错误User can't cast to String！！！ -->        <property name="keySerializer">
+        <property name="keySerializer">
             <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
         </property>
         <property name="valueSerializer">
@@ -48,34 +33,26 @@
         </property>
     </bean>
 
-    <bean id="namingRedisSentinelConfiguration" class="org.springframework.data.redis.connection.RedisSentinelConfiguration">
-        <property name="master">
-            <bean class="org.springframework.data.redis.connection.RedisNode">
-                <property name="name" value="mymaster"></property>
-            </bean>
-        </property>
-        <property name="sentinels">
-            <set>
-                <bean class="org.springframework.data.redis.connection.RedisNode">
-                    <constructor-arg name="host" value="localhost"></constructor-arg>
-                    <constructor-arg name="port" value="26379"></constructor-arg>
-                </bean>
-                <bean class="org.springframework.data.redis.connection.RedisNode">
-                    <constructor-arg name="host" value="localhost"></constructor-arg>
-                    <constructor-arg name="port" value="29921"></constructor-arg>
-                </bean>
-            </set>
-        </property>
+
+    <!-- 注意此处注入的是JedisPoolConfig，说明SDR还依赖与Jedis -->
+    <bean id="registryPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <!--        <property name="maxIdle" value="${redis.maxIdle}" />
+                <property name="maxWaitMillis" value="${redis.maxWait}" />
+                <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
     </bean>
 
-    <bean id="namingJedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-        <constructor-arg name="sentinelConfig" ref="namingRedisSentinelConfiguration"/>
-        <constructor-arg name="poolConfig" ref="messagePoolConfig" />
+    <bean id="registryRedisSentinelConfiguration" class="com.mycompany.im.framework.spring.MyRedisSentinelConfiguration">
+        <property name="sentinelsDesc" value="${redis.registry}"/>
     </bean>
 
-    <bean id="namingRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
-        <property name="connectionFactory" ref="namingJedisConnectionFactory" />
-            <!--         如果不配置Serializer，那么存储的时候智能使用String，如果用User类型存储，那么会提示错误User can't cast to String！！！ -->        <property name="keySerializer">
+    <bean id="registryJedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <constructor-arg name="sentinelConfig" ref="registryRedisSentinelConfiguration"/>
+        <constructor-arg name="poolConfig" ref="registryPoolConfig" />
+    </bean>
+
+    <bean id="registryRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory" ref="registryJedisConnectionFactory" />
+        <property name="keySerializer">
             <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
         </property>
         <property name="valueSerializer">
