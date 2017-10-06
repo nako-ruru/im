@@ -4,22 +4,18 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.mycompany.im.compute.domain.MessageRepository;
 import com.mycompany.im.compute.domain.ToPollingMessage;
-import java.lang.reflect.Field;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.*;
+import redis.clients.util.JedisClusterCRC16;
 
+import javax.annotation.Resource;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.annotation.Resource;
-import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import redis.clients.jedis.BinaryJedisCluster;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisSlotBasedConnectionHandler;
-import redis.clients.jedis.Pipeline;
-import redis.clients.util.JedisClusterCRC16;
 
 /**
  * Created by Administrator on 2017/9/3.
@@ -37,7 +33,7 @@ public class RedisMessageRepository implements MessageRepository {
             .addEscape('\r', "\\r")
             .build();
     
-    @Resource
+    @Resource(name = "messageRedisTemplate")
     private StringRedisTemplate redisTemplate;
     
     @Override

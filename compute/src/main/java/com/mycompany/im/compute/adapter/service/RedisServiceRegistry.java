@@ -8,18 +8,19 @@ package com.mycompany.im.compute.adapter.service;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.compute.domain.ServiceRegistry;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.UnknownHostException;
-import java.util.Enumeration;
-import java.util.Map;
-import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
+import java.util.Map;
 
 /**
  *
@@ -32,7 +33,7 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
     
     @Resource(name = "plain.tcp.listen.port")
     private int listenPort;
-    @Resource
+    @Resource(name = "namingRedisTemplate")
     private StringRedisTemplate redisTemplate;
     
     private String registryAddress;

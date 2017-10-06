@@ -6,12 +6,13 @@
 package com.mycompany.im.compute.domain;
 
 import com.google.gson.Gson;
-import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
+import javax.annotation.Resource;
 
 /**
  *
@@ -20,12 +21,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class RoomManagementListener implements MessageListener {  
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    @Resource
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate redisTemplate;
     @Resource
     private ComputeKernel computeKernel;
       
-    public void setRedisTemplate(RedisTemplate redisTemplate) {  
+    public void setRedisTemplate(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;  
     }  
   
