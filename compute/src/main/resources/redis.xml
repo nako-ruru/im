@@ -10,16 +10,9 @@
         <property name="maxWaitMillis" value="${redis.maxWait}" />
         <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
     </bean>
-    
-    <bean id="redisClusterConfig" class="com.mycompany.im.framework.spring.MyRedisClusterConfiguration">
-       <property name="maxRedirects" value="3" />  
-       <property name="clusterNodesDesc" value="${redis.message}"/>
-   </bean>  
 
-    <bean id="messageJedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-        <constructor-arg name="clusterConfig" ref="redisClusterConfig" />
-<!--        <property name="hostName" value="${redis.host}" />  
-        <property name="port" value="${redis.port}" />  -->
+    <bean id="messageJedisConnectionFactory" class="com.mycompany.im.framework.spring.UniversalJedisConnectionFactory">
+        <property name="connectionFactoryDesc" value="${redis.message}" />
         <property name="poolConfig" ref="messagePoolConfig" />
     </bean>  
 
@@ -41,13 +34,9 @@
                 <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
     </bean>
 
-    <bean id="registryRedisSentinelConfiguration" class="com.mycompany.im.framework.spring.MyRedisSentinelConfiguration">
-        <property name="sentinelsDesc" value="${redis.registry}"/>
-    </bean>
-
-    <bean id="registryJedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-        <constructor-arg name="sentinelConfig" ref="registryRedisSentinelConfiguration"/>
-        <constructor-arg name="poolConfig" ref="registryPoolConfig" />
+    <bean id="registryJedisConnectionFactory" class="com.mycompany.im.framework.spring.UniversalJedisConnectionFactory">
+        <property name="connectionFactoryDesc" value="${redis.registry}" />
+        <property name="poolConfig" ref="registryPoolConfig" />
     </bean>
 
     <bean id="registryRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">

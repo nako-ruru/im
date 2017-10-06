@@ -11,22 +11,16 @@
         <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
     </bean>
 
-    
-    <bean id="redisClusterConfig" class="com.mycompany.im.framework.spring.MyRedisClusterConfiguration">
-        <property name="maxRedirects" value="3" />
-        <property name="clusterNodesDesc" value="${redis.message}"/>
-   </bean>  
 
-    <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">  
-        <constructor-arg name="clusterConfig" ref="redisClusterConfig" />  
-<!--        <property name="hostName" value="${redis.host}" />  
-        <property name="port" value="${redis.port}" />  -->
-        <property name="poolConfig" ref="poolConfig" />  
+
+    <bean id="jedisConnectionFactory" class="com.mycompany.im.framework.spring.UniversalJedisConnectionFactory">  
+        <property name="connectionFactoryDesc" value="${redis.message}" />
+        <property name="poolConfig" ref="poolConfig" />
     </bean>  
 
     <bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
         <property name="connectionFactory" ref="jedisConnectionFactory" />
-<!--         如果不配置Serializer，那么存储的时候智能使用String，如果用User类型存储，那么会提示错误User can't cast to String！！！ -->        <property name="keySerializer">
+	    <property name="keySerializer">
             <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
         </property>
         <property name="valueSerializer">

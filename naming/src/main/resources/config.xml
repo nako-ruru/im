@@ -11,7 +11,7 @@
         <property name="locations">
             <list>
                 <value>classpath:naming.properties</value>
-                <value>file:///opt/naming/config/naming.properties</value>
+                <value>file:///opt/config/naming.properties</value>
             </list>
         </property>
     </bean>
