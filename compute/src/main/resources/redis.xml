@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 注意此处注入的是JedisPoolConfig，说明SDR还依赖与Jedis -->
+    <bean id="messagePoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+<!--        <property name="maxIdle" value="${redis.maxIdle}" />
+        <property name="maxWaitMillis" value="${redis.maxWait}" />
+        <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
+    </bean>
+
+    <bean id="messageJedisConnectionFactory" class="com.mycompany.im.framework.spring.UniversalJedisConnectionFactory">
+        <property name="connectionFactoryDesc" value="${redis.message}" />
+        <property name="poolConfig" ref="messagePoolConfig" />
+    </bean>  
+
+    <bean id="messageRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory" ref="messageJedisConnectionFactory" />
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+    </bean>
+
+
+    <!-- 注意此处注入的是JedisPoolConfig，说明SDR还依赖与Jedis -->
+    <bean id="registryPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <!--        <property name="maxIdle" value="${redis.maxIdle}" />
+                <property name="maxWaitMillis" value="${redis.maxWait}" />
+                <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
+    </bean>
+
+    <bean id="registryJedisConnectionFactory" class="com.mycompany.im.framework.spring.UniversalJedisConnectionFactory">
+        <property name="connectionFactoryDesc" value="${redis.registry}" />
+        <property name="poolConfig" ref="registryPoolConfig" />
+    </bean>
+
+    <bean id="registryRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory" ref="registryJedisConnectionFactory" />
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+    </bean>
+
+    <bean id="topicMessageListener" class="com.mycompany.im.compute.domain.RoomManagementListener">  
+        <property name="redisTemplate" ref="messageRedisTemplate"></property>
+    </bean>  
+    <bean id="topicContainer" class="org.springframework.data.redis.listener.RedisMessageListenerContainer" destroy-method="destroy">  
+        <property name="connectionFactory" ref="messageJedisConnectionFactory"/>
+        <property name="taskExecutor">
+            <!-- 此处有个奇怪的问题，无法正确使用其他类型的Executor -->  
+            <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">  
+                <property name="poolSize" value="3"></property>  
+            </bean>  
+        </property>  
+        <property name="messageListeners">  
+            <map>  
+                <entry key-ref="topicMessageListener">  
+                    <bean class="org.springframework.data.redis.listener.ChannelTopic">  
+                        <constructor-arg value="room_manage_channel"/>  
+                    </bean>  
+                </entry>  
+            </map>  
+        </property>  
+    </bean>  
+
+</beans>
+

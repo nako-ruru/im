@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 注意此处注入的是JedisPoolConfig，说明SDR还依赖与Jedis -->
+    <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+<!--        <property name="maxIdle" value="${redis.maxIdle}" />
+        <property name="maxWaitMillis" value="${redis.maxWait}" />
+        <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
+    </bean>
+
+
+
+    <bean id="jedisConnectionFactory" class="com.mycompany.im.framework.spring.UniversalJedisConnectionFactory">  
+        <property name="connectionFactoryDesc" value="${redis.message}" />
+        <property name="poolConfig" ref="poolConfig" />
+    </bean>  
+
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory" ref="jedisConnectionFactory" />
+	    <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+    </bean>
+
+</beans>
+

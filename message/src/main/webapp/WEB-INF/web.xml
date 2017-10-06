@@ -39,6 +39,8 @@
             <param-value>
                 classpath:framework.xml,
                 classpath:mvc.xml,
+                classpath:config.xml,
+                classpath:redis.xml,
                 classpath:scheduled.xml,
                 classpath:performance-monitor.xml
             </param-value>

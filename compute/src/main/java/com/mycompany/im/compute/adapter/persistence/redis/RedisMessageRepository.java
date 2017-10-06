@@ -4,12 +4,11 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.mycompany.im.compute.domain.MessageRepository;
 import com.mycompany.im.compute.domain.ToPollingMessage;
-import com.mycompany.im.util.JedisPoolUtils;
+import com.mycompany.im.framework.spring.RedisPipelineUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPipeline;
-import redis.clients.jedis.ShardedJedisPool;
 
+import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -29,40 +28,43 @@ public class RedisMessageRepository implements MessageRepository {
             .addEscape('\r', "\\r")
             .build();
     
+    @Resource(name = "messageRedisTemplate")
+    private StringRedisTemplate redisTemplate;
+    
     @Override
     public void save(Collection<ToPollingMessage> msgs) {
-        ShardedJedisPool pool = JedisPoolUtils.shardedJedisPool();
-        try(ShardedJedis shardedJedis = pool.getResource()) {
-            ShardedJedisPipeline pipelined = shardedJedis.pipelined();
-            StringBuilder buffer = new StringBuilder();
-            for(ToPollingMessage msg : msgs) {
-                buffer.setLength(0);
-                String paramText = msg.params.entrySet().stream()
-                        .map(entry -> "\"" + entry.getKey() + "\":\"" + translate(entry.getValue()) + "\"")
-                        .collect(Collectors.joining(",", "{", "}"));
-                buffer
-                        .append("{")
-                        .append("\"messageId\":").append("\"").append(translate(msg.messageId)).append("\"")
-                        .append(", ")
-                        .append("\"toRoomId\":").append("\"").append(translate(msg.toRoomId)).append("\"")
-                        .append(", ")
-                        .append("\"fromUserId\":").append("\"").append(translate(msg.fromUserId)).append("\"")
-                        .append(", ")
-                        .append("\"fromNickname\":").append("\"").append(translate(msg.fromNickname)).append("\"")
-                        .append(", ")
-                        .append("\"time\":").append(msg.time)
-                        .append(", ")
-                        .append("\"fromLevel\":").append(msg.fromLevel)
-                        .append(", ")
-                        .append("\"type\":") .append(msg.type)
-                        .append(", ")
-                        .append("\"params\":").append(paramText)
-                        .append("}");
-                String jsonText = buffer.toString();
-                pipelined.zadd("room-" + msg.toRoomId, msg.time, jsonText);
-            }
-            pipelined.sync();
-        }
+        executePipelined(msgs);
+    }
+    
+    private void executePipelined(Collection<ToPollingMessage> msgs) {
+        StringBuilder buffer = new StringBuilder();
+        
+        RedisPipelineUtils.execute(redisTemplate, msgs, msg -> msg.toRoomId, (pipeline, msg) -> {
+            String paramText = msg.params.entrySet().stream()
+                    .map(paramEntry -> "\"" + paramEntry.getKey() + "\":\"" + translate(paramEntry.getValue()) + "\"")
+                    .collect(Collectors.joining(",", "{", "}"));
+            buffer
+                    .append("{")
+                    .append("\"messageId\":").append("\"").append(translate(msg.messageId)).append("\"")
+                    .append(", ")
+                    .append("\"toRoomId\":").append("\"").append(translate(msg.toRoomId)).append("\"")
+                    .append(", ")
+                    .append("\"fromUserId\":").append("\"").append(translate(msg.fromUserId)).append("\"")
+                    .append(", ")
+                    .append("\"fromNickname\":").append("\"").append(translate(msg.fromNickname)).append("\"")
+                    .append(", ")
+                    .append("\"time\":").append(msg.time)
+                    .append(", ")
+                    .append("\"fromLevel\":").append(msg.fromLevel)
+                    .append(", ")
+                    .append("\"type\":") .append(msg.type)
+                    .append(", ")
+                    .append("\"params\":").append(paramText)
+                    .append("}");
+            String jsonText = buffer.toString();
+            
+            pipeline.zadd("room-" + msg.toRoomId, msg.time, jsonText);
+        });
     }
 
     private static String translate(String input) {

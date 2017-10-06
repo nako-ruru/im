@@ -3,7 +3,6 @@ package com.mycompany.im.naming.adapter.persistence.redis;
 
 import com.google.gson.Gson;
 import com.mycompany.im.naming.domain.NamingRepository;
-import com.mycompany.im.util.JedisPoolUtils;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,22 +12,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.ShardedJedis;
 
 @Component
 public class RedisNamingRepository implements NamingRepository {
     
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    
+    @Resource
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public List<NamingInfo> servers(String serverType) {
-        ShardedJedis resource = JedisPoolUtils.shardedJedisPool().getResource();
-        Map<String, String> servers = resource.hgetAll(serverType);
+        Map<String, String> servers = redisTemplate.<String, String>opsForHash().entries(serverType);
         
-        Collection<Map.Entry<String, NamingInfo>> available = new ArrayList();
+        Collection<Map.Entry<String, NamingInfo>> available = new ArrayList(servers.size());
         for(Map.Entry<String, String> entry : servers.entrySet()) {
             try {
                 NamingInfo namingInfo = new Gson().fromJson(entry.getValue(), NamingInfo.class);

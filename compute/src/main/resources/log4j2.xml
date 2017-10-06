@@ -36,25 +36,25 @@
         <logger name="com.mycompany.im.framework.spring" level="INFO" additivity="false">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>
-            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+            <AppenderRef ref="ERROR_FILE" level="WARN"/>
         </logger>
 
         <logger name="org.springframework" level="WARN" additivity="false">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>
-            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+            <AppenderRef ref="ERROR_FILE" level="WARN"/>
         </logger>
 
         <logger name="org.apache.kafka" level="WARN" additivity="false">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>
-            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+            <AppenderRef ref="ERROR_FILE" level="WARN"/>
         </logger>
 
         <Root includeLocation="true" level="INFO">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>
-            <AppenderRef ref="ERROR_FILE" level="ERROR"/>
+            <AppenderRef ref="ERROR_FILE" level="WARN"/>
         </Root>
 
     </Loggers>

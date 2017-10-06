@@ -8,19 +8,19 @@ package com.mycompany.im.compute.adapter.service;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.mycompany.im.compute.domain.ServiceRegistry;
-import com.mycompany.im.util.JedisPoolUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Map;
-import javax.annotation.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Service;
-import redis.clients.jedis.ShardedJedis;
 
 /**
  *
@@ -33,6 +33,8 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
     
     @Resource(name = "plain.tcp.listen.port")
     private int listenPort;
+    @Resource(name = "registryRedisTemplate")
+    private StringRedisTemplate redisTemplate;
     
     private String registryAddress;
 
@@ -43,12 +45,10 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
 
     private void registerIfRigstryAddressResolved() {
         if(registryAddress != null) {
-            try(ShardedJedis jedis = JedisPoolUtils.shardedJedisPool().getResource()) {
-                Map map = ImmutableMap.of("registerTime", System.currentTimeMillis());
-                final String value = new Gson().toJson(map);
-                logger.info("register: key: " + registryAddress + "; value: " + value);
-                jedis.hset("compute-servers", registryAddress, value);
-            }
+            Map map = ImmutableMap.of("registerTime", System.currentTimeMillis());
+            final String value = new Gson().toJson(map);
+            logger.info("register: key: " + registryAddress + "; value: " + value);
+            redisTemplate.opsForHash().put("compute-servers", registryAddress, value);
         }
     }
     
