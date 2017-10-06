@@ -27,6 +27,7 @@ public class UniversalJedisConnectionFactory extends JedisConnectionFactory {
             }
             else if(a.addresses.length > 1) {
                 RedisClusterConfiguration configuration = new RedisClusterConfiguration(ImmutableSet.copyOf(a.addresses));
+                configuration.setMaxRedirects(a.maxRetries);
                 Field field = JedisConnectionFactory.class.getDeclaredField("clusterConfig");
                 if(!field.isAccessible()) {
                     field.setAccessible(true);
@@ -42,6 +43,8 @@ public class UniversalJedisConnectionFactory extends JedisConnectionFactory {
                 String host = elements[0].trim();
                 super.setPort(port);
                 super.setHostName(host);
+                super.setPassword(a.password);
+                super.setDatabase(a.db);
             }
         } catch (Exception e) {
             throw new Error(e);
@@ -51,6 +54,9 @@ public class UniversalJedisConnectionFactory extends JedisConnectionFactory {
     private static class A {
         private String masterName;
         private String[] addresses;
+        private String password;
+        private int maxRetries;
+        private int db;
     }
 
 }

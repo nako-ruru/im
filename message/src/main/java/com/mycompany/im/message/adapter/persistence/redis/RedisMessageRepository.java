@@ -2,27 +2,21 @@ package com.mycompany.im.message.adapter.persistence.redis;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import com.mycompany.im.framework.spring.RedisPipelineUtils;
 import com.mycompany.im.message.domain.Message;
 import com.mycompany.im.message.domain.MessageRepository;
-import java.lang.reflect.Field;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Resource;
-import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
-import redis.clients.jedis.BinaryJedisCluster;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisSlotBasedConnectionHandler;
-import redis.clients.jedis.Pipeline;
-import redis.clients.util.JedisClusterCRC16;
 
 /**
  * Created by Administrator on 2017/5/29.
@@ -66,7 +60,7 @@ public class RedisMessageRepository implements MessageRepository {
 
     @Override
     public void purge() {
-        executePipelined();
+        executePipelined(allRoomIdsWithWorld());
     }
 
     private Set<String> allRoomIdsWithWorld() {
@@ -91,49 +85,21 @@ public class RedisMessageRepository implements MessageRepository {
                 .map(v -> gson.fromJson(v.getValue(), Message.class))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
-    private void executePipelined() {
-        JedisClusterConnection jedisClusterConnection = (JedisClusterConnection)redisTemplate.getConnectionFactory().getClusterConnection();
-        JedisCluster jedisCluster = jedisClusterConnection.getNativeConnection();
-        JedisSlotBasedConnectionHandler jedisClusterConnectionHandler = getJedisSlotBasedConnectionHandler(jedisCluster);
-        
-        Set<String> keys = allRoomIdsWithWorld();
-        
-        Map<Integer, List<String>> group = keys.stream()
-                .collect(Collectors.groupingBy(key -> JedisClusterCRC16.getSlot(key)));
-        
-        long end = System.currentTimeMillis() - purgeFixedDelay;
-        
-        for(Map.Entry<Integer, List<String>> entry : group.entrySet()) {
-            try (Jedis connection = jedisClusterConnectionHandler.getConnectionFromSlot(entry.getKey())) {
-                Pipeline pipeline = connection.pipelined();
-                
-                for(String key : entry.getValue()) {
-                    try {
-                        pipeline.zremrangeByRank(key, 0, -(purgeRetainSize + 1));
-                    } catch (Exception e) {
-                        logger.error("", e);
-                    }
-                    try {
-                        pipeline.zremrangeByScore(key, 0, end);
-                    } catch (Exception e) {
-                        logger.error("", e);
-                    }
-                }
-                pipeline.sync();
-            }
-        }
-    }
     
-    private static JedisSlotBasedConnectionHandler getJedisSlotBasedConnectionHandler(JedisCluster cluster) {
-        try {
-            Field field = BinaryJedisCluster.class.getDeclaredField("connectionHandler");
-            if(!field.isAccessible()) {
-                field.setAccessible(true);
+    private void executePipelined(Set<String> keys) {
+        long end = System.currentTimeMillis() - purgeFixedDelay;
+        RedisPipelineUtils.execute(redisTemplate, keys, Function.identity(), (pipeline, key) -> {
+            try {
+                pipeline.zremrangeByRank(key, 0, -(purgeRetainSize + 1));
+            } catch (Exception e) {
+                logger.error("", e);
             }
-            return (JedisSlotBasedConnectionHandler) field.get(cluster);
-        } catch (Exception ex) {
-            throw new Error(ex);
-        }
+            try {
+                pipeline.zremrangeByScore(key, 0, end);
+            } catch (Exception e) {
+                logger.error("", e);
+            }
+        });
     }
 
 }
