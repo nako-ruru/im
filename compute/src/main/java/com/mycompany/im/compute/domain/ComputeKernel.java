@@ -51,7 +51,7 @@ public class ComputeKernel {
                     messages.add(first);
                     queue.drainTo(messages, maxPollingSize - 1);
 
-                    logger.info("queue size: " + queue.size());
+                    logger.info(String.format("poll size: %s; queue size: %s", messages.size(), queue.size()));
 
                     messageRepository.save(messages);
                 } catch (InterruptedException e) {

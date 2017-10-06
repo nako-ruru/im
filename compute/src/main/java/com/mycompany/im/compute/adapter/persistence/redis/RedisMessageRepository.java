@@ -43,6 +43,8 @@ public class RedisMessageRepository implements MessageRepository {
             String paramText = msg.params.entrySet().stream()
                     .map(paramEntry -> "\"" + paramEntry.getKey() + "\":\"" + translate(paramEntry.getValue()) + "\"")
                     .collect(Collectors.joining(",", "{", "}"));
+            
+            buffer.setLength(0);
             buffer
                     .append("{")
                     .append("\"messageId\":").append("\"").append(translate(msg.messageId)).append("\"")
