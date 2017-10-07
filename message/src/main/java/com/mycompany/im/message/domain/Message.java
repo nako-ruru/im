@@ -15,7 +15,7 @@ public class Message {
     private String fromNickname;
     private long time;
     private int type, fromLevel;
-    private Map<String, Object> params;
+    private Map<String, String> params;
 
     public String getMessageId() {
         return messageId;
@@ -57,11 +57,11 @@ public class Message {
         this.fromNickname = fromNickname;
     }
 
-    public Map<String, Object> getParams() {
+    public Map<String, String> getParams() {
         return params;
     }
 
-    public void setParams(Map<String, Object> params) {
+    public void setParams(Map<String, String> params) {
         this.params = params;
     }
 

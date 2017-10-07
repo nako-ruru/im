@@ -16,7 +16,7 @@ public class MessageResult {
     private final String fromUserId, fromNickname;
     private final int fromLevel;
     private final int type;
-    private final Map<String, Object> params;
+    private final Map<String, String> params;
     private final long time;
     
     @Deprecated
@@ -26,7 +26,7 @@ public class MessageResult {
     @Deprecated
     private final int level;
 
-    public MessageResult(String messageId, String toRoomId, String fromUserId, int type, Map<String, Object> params, String fromNickname, int fromLevel, long time) {
+    public MessageResult(String messageId, String toRoomId, String fromUserId, int type, Map<String, String> params, String fromNickname, int fromLevel, long time) {
         this.messageId = messageId;
         
         this.toRoomId = toRoomId;
@@ -71,7 +71,7 @@ public class MessageResult {
         return type;
     }
 
-    public Map<String, Object> getParams() {
+    public Map<String, String> getParams() {
         return params;
     }
     
