@@ -9,9 +9,9 @@ import com.google.gson.Gson;
 import com.mycompany.im.router.domain.Payload;
 import com.mycompany.im.router.domain.channel.Push;
 import java.util.Properties;
-import javax.annotation.Resource;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -26,8 +26,10 @@ public class KafkaSend implements Push {
     private volatile KafkaProducer producer;
     private final Object producerLock = new Object();
     
-    @Resource(name = "kafka.brokers")
+    @Value("${kafka.brokers}")
     private String bootstrapServers;
+    @Value("${kafka.topic}")
+    private String topic;
     
     @Override
     public void send(Payload message) {
@@ -38,7 +40,7 @@ public class KafkaSend implements Push {
                 }
             }
         }
-        ProducerRecord<String, String> record = new ProducerRecord<>("router", new Gson().toJson(message));
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, new Gson().toJson(message));
         producer.send(record);
     }
     

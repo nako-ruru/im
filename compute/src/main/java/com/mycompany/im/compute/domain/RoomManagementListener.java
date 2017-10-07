@@ -36,7 +36,7 @@ public class RoomManagementListener implements MessageListener {
         //请参考配置文件，本例中key，value的序列化方式均为string。  
         //其中key必须为stringSerializer。和redisTemplate.convertAndSend对应  
         String body = (String)redisTemplate.getValueSerializer().deserialize(bodyBytes);  
-        String channel = (String)redisTemplate.getStringSerializer().deserialize(channelBytes);  
+        String channel = redisTemplate.getStringSerializer().deserialize(channelBytes);
         //...  
         
         
@@ -57,7 +57,7 @@ public class RoomManagementListener implements MessageListener {
                     if(payload.isAdd()) {
                         computeKernel.addKick(payload.getRoomId(), payload.getUserId());
                     } else {
-                        computeKernel.removeSilence(payload.getRoomId(), payload.getUserId());
+                        computeKernel.removeKick(payload.getRoomId(), payload.getUserId());
                     }
                 }
                 else if("dispose".equals(msg.getType())) {
