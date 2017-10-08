@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by Administrator on 2017/8/28.
+ * 
+ * 接收来自业务的消息
  */
 @Component
 public class KafkaRecv {

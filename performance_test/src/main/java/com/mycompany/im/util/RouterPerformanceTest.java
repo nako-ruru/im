@@ -22,8 +22,8 @@ public class RouterPerformanceTest {
     
     public static void main(String... args) {
         String routerHost = Utils.getOrDefault(args, 0, Function.identity(), "47.92.49.101:8080/router");
-        String roomId = Utils.getOrDefault(args, 0, Function.identity(), "17b08c84-8e10-44d1-b93a-15128f182aa0");
-        long intervalInMilli = Utils.getOrDefault(args, 1, Long::parseLong, 10L);
+        String roomId = Utils.getOrDefault(args, 0, Function.identity(), "dae8fd75-04f6-48ca-bad7-c636013894fc");
+        long intervalInMilli = Utils.getOrDefault(args, 1, Long::parseLong, 10000L);
         
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(30);
         scheduledExecutorService.scheduleAtFixedRate(() -> {
