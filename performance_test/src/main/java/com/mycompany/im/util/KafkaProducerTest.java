@@ -14,12 +14,13 @@ import java.util.function.Function;
  */
 public class KafkaProducerTest {
     
-    public final static String TOPIC = "testweixuan";
+    public final static String TOPIC = "router";
     
     private final KafkaProducer<String, String> producer;
     private KafkaProducerTest(String bootstrapServers) {
         Properties props = new Properties();
         props.put("bootstrap.servers", bootstrapServers);
+        props.put("compression.type", "gzip");
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 65536);
@@ -33,13 +34,11 @@ public class KafkaProducerTest {
     void produce(String topic, long interval) throws InterruptedException {
         int messageNo = 0;
         while (true) {
-            long start = System.currentTimeMillis();
-            String key = String.format("%9d", messageNo);
-            String data = key + ": " + RandomStringUtils.randomPrint(100);
-            producer.send(new ProducerRecord<>(topic, key, data));
+            String data = String.format("%9d:%s", messageNo, RandomStringUtils.randomPrint(100));
             System.out.println(data);
+            producer.send(new ProducerRecord<>(topic, data));
             messageNo++;
-            Thread.sleep(Math.max(0, interval - (System.currentTimeMillis() - start)));
+            Thread.sleep(10);
         }
     }
 

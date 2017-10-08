@@ -1,5 +1,6 @@
 package com.mycompany.im.util;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -58,6 +59,16 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        ByteBuf buffer = (ByteBuf) msg;
+        int length = buffer.writerIndex() - buffer.readerIndex();
+        int type = buffer.readInt();
+        int contentLength = length - 4;
+        byte[] bytes = new byte[contentLength];
+        buffer.readBytes(bytes, 0, contentLength);
+        if (type == 30000) {
+            String jsonText = new String(bytes, 0, contentLength, MessageUtils.UTF_8);
+            System.out.println(jsonText);
+        }
     }
 
     @Override
@@ -71,6 +82,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                 "roomId", roomId
         );
         writeMsg(out, params, 0);
+        writeMsg(out, params, 4);
     }
 
     private static void chat(Channel out, String roomId, String content, String nickname, int level) throws IOException {
@@ -90,11 +102,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     private static <K, V> Map<K, V> map(Object... keyValues) {
-        Map map = new HashMap<>();
-        for(int i = 0; i < keyValues.length / 2; i++) {
-            map.put(keyValues[i * 2], keyValues[i * 2 + 1]);
-        }
-        return map;
+        return MessageUtils.map(keyValues);
     }
 
 }

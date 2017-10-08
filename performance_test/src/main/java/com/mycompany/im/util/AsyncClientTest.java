@@ -8,6 +8,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -21,11 +22,9 @@ import java.util.function.Function;
 public class AsyncClientTest {
 
     public static void main(String[] args) throws Exception {
-        int clientCount = getOrDefault(args, 0, Integer::parseInt, 2);
-        int roomCount = getOrDefault(args, 1, Integer::parseInt, 2);
-            //String defaultAddress = "47.92.98.23:6000";
-        String defaultAddress = "localhost:6000";
-        String address = getOrDefault(args, 2, Function.identity(), defaultAddress);
+        int clientCount = getOrDefault(args, 0, Integer::parseInt, 1);
+        int roomCount = getOrDefault(args, 1, Integer::parseInt, 1);
+        String address = getOrDefault(args, 2, Function.identity(), ClientTest.DEFAULT_ADDRESS);
         long interval = getOrDefault(args, 3, Long::parseLong, 1000L);
 
         String[] roomIds = allRoomIds(roomCount);
@@ -46,6 +45,9 @@ public class AsyncClientTest {
         Executor executor = Executors.newCachedThreadPool();
 
         EventLoopGroup workerGroup = new NioEventLoopGroup(0, executor);
+        
+        
+        LengthFieldBasedFrameDecoder lengthFieldBasedFrameDecoder = new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4);
 
         for(int i = 0; i < clientCount; i++) {
             String userId = String.format("userId[%s][%s]", i, UUID.randomUUID().toString());
@@ -58,6 +60,7 @@ public class AsyncClientTest {
                 b.handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(lengthFieldBasedFrameDecoder);
                         ch.pipeline().addLast(new AsyncClientHandler(userId, roomId, scheduledExecutorService, finalInterval));
                     }
                 });

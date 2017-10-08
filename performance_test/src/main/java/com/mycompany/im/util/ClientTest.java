@@ -1,4 +1,5 @@
-import com.mycompany.im.connector.MessageUtils;
+package com.mycompany.im.util;
+
 
 import java.io.*;
 import java.net.Socket;
@@ -9,6 +10,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by Administrator on 2017/5/28.
  */
 public class ClientTest {
+    
+    static String DEFAULT_ADDRESS = "47.92.68.14:6000";
 
     public static void main(String... args) throws InterruptedException {
         int clientCount = 1;
@@ -55,9 +58,18 @@ public class ClientTest {
         public void start() {
             Socket socket;
             try {
-                String host = "localhost";
-//                String host = "47.92.98.23";
-                socket = new Socket(host, 6000);
+                String address = DEFAULT_ADDRESS;
+                int colonIndex = address.indexOf(":");
+                String host;
+                int port;
+                if(colonIndex >= 0) {
+                    host = address.substring(0, colonIndex);
+                    port = Integer.parseInt(address.substring(colonIndex + 1));
+                } else {
+                    host = address;
+                    port = 6000;
+                }
+                socket = new Socket(host, port);
 
                 ThreadLocalRandom random = ThreadLocalRandom.current();
 

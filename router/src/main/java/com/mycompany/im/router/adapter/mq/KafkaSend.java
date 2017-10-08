@@ -47,6 +47,7 @@ public class KafkaSend implements Push {
     private KafkaProducer newKafkaProducer() {
         Properties props = new Properties();
         props.put("bootstrap.servers", bootstrapServers);
+        props.put("compression.type", "gzip");
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 65536);

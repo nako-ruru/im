@@ -128,7 +128,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.mycompany.im.util.RouterPerformanceTest</mainClass>
+                            <mainClass>com.mycompany.im.util.AsyncClientTest</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

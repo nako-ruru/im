@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class MessageUtils {
 
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    static final Charset UTF_8 = Charset.forName("UTF-8");
 
     /**
      * 对当前{@link java.net.Socket}连接注册userId。该方法在每次连接后调用且仅调用一次
@@ -40,7 +40,7 @@ public class MessageUtils {
     public static void enter(DataOutput out, String roomId) throws IOException {
         Map<String, Object> params = map(
                 "roomId", roomId
-                );
+        );
         writeMsg(out, params, 4);
     }
 
@@ -58,12 +58,12 @@ public class MessageUtils {
                     while (true) {
                         int length = in.readInt();
                         int type = in.readInt();
+                        int contentLength = length - 4;
+                        byte[] bytes = new byte[contentLength];
+                        int read = 0;
+                        while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
+                        }
                         if (type == 30000) {
-                            int contentLength = length - 4;
-                            byte[] bytes = new byte[contentLength];
-                            int read = 0;
-                            while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
-                            }
                             String jsonText = new String(bytes, 0, contentLength, UTF_8);
                             try {
                                 Msg msg = new Gson().fromJson(jsonText, Msg.class);
@@ -183,7 +183,7 @@ public class MessageUtils {
         void accept(T t);
     }
 
-    private static <K, V> Map<K, V> map(Object... keyValues) {
+    static <K, V> Map<K, V> map(Object... keyValues) {
         Map map = new HashMap<>();
         for(int i = 0; i < keyValues.length / 2; i++) {
             map.put(keyValues[i * 2], keyValues[i * 2 + 1]);

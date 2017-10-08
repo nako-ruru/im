@@ -1,18 +1,16 @@
+package com.mycompany.im.util;
+
 import com.google.gson.Gson;
-import com.mycompany.im.connector.MessageUtils;
-import org.junit.Test;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Administrator on 2017/7/2.
  */
 public class JedisPubSubTest {
 
-    @Test
     public void testPub() throws InterruptedException {
         Jedis jedis = new Jedis("localhost", 9921);
         jedis.auth("BrightHe0");
@@ -26,7 +24,6 @@ public class JedisPubSubTest {
         }
     }
 
-    @Test
     public void testSub() throws InterruptedException {
         Jedis jedis = new Jedis("localhost", 9921);
         jedis.auth("BrightHe0");
