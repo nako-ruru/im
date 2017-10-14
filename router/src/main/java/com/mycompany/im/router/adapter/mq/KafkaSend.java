@@ -12,14 +12,12 @@ import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 /**
  *
  * @author Administrator
  */
-@Primary
 @Component
 public class KafkaSend implements Push {
     
@@ -48,7 +46,7 @@ public class KafkaSend implements Push {
         Properties props = new Properties();
         props.put("bootstrap.servers", bootstrapServers);
         props.put("compression.type", "gzip");
-        props.put("acks", "all");
+//        props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 65536);
         props.put("linger.ms", 1000);

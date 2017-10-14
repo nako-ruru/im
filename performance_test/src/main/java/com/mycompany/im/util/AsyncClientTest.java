@@ -47,8 +47,6 @@ public class AsyncClientTest {
         EventLoopGroup workerGroup = new NioEventLoopGroup(0, executor);
         
         
-        LengthFieldBasedFrameDecoder lengthFieldBasedFrameDecoder = new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4);
-
         for(int i = 0; i < clientCount; i++) {
             String userId = String.format("userId[%s][%s]", i, UUID.randomUUID().toString());
             String roomId = roomIds[i % roomCount];
@@ -60,6 +58,7 @@ public class AsyncClientTest {
                 b.handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
+                        LengthFieldBasedFrameDecoder lengthFieldBasedFrameDecoder = new LengthFieldBasedFrameDecoder(Short.MAX_VALUE, 0, 4, 0, 4);
                         ch.pipeline().addLast(lengthFieldBasedFrameDecoder);
                         ch.pipeline().addLast(new AsyncClientHandler(userId, roomId, scheduledExecutorService, finalInterval));
                     }
@@ -87,7 +86,7 @@ public class AsyncClientTest {
     private static String[] allRoomIds(int roomCount) {
         String[] roomIds = new String[roomCount];
         for(int i = 0; i < roomIds.length; i++) {
-            roomIds[i] = UUID.randomUUID().toString();
+            roomIds[i] = "roomId" + i;
         }
         return roomIds;
     }

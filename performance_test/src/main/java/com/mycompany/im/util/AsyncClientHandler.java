@@ -7,14 +7,19 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongPredicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
+    
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String[] WORDS = {
             "主播好漂亮！",
@@ -29,6 +34,8 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
     private final ScheduledExecutorService scheduledExecutorService;
     private final long interval;
     private final String roomId;
+    
+    private static final MyAtomicLong atomicLong = new MyAtomicLong();
 
     public AsyncClientHandler(String userId, String roomId, ScheduledExecutorService scheduledExecutorService, long interval) {
         this.userId = userId;
@@ -50,7 +57,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                 try {
                     chat(ctx.channel(), roomId, content, nickname, level);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(String.format("ctx: %s", ctx.channel().localAddress()), e);
                 }
 
             }, interval, interval, TimeUnit.MILLISECONDS);
@@ -60,20 +67,38 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf buffer = (ByteBuf) msg;
+        
         int length = buffer.writerIndex() - buffer.readerIndex();
         int type = buffer.readInt();
         int contentLength = length - 4;
         byte[] bytes = new byte[contentLength];
         buffer.readBytes(bytes, 0, contentLength);
-        if (type == 30000) {
-            String jsonText = new String(bytes, 0, contentLength, MessageUtils.UTF_8);
-            System.out.println(jsonText);
+        
+        buffer.release();
+        
+        try {
+            MessageUtils.handle(
+                    bytes,
+                    0, 
+                    contentLength,
+                    type,
+                    m -> {
+                        //每2秒输出一次，避免高并发竞争log lock
+                        long currentTimeMillis = System.currentTimeMillis();
+                        boolean changed = atomicLong.checkAndSet(time -> currentTimeMillis - time > 2000L, currentTimeMillis);
+                        if(changed) {
+                            logger.info(m.getTimeText());
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            logger.error(String.format("ctx: %s", ctx.channel().localAddress()), e);
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        logger.error(String.format("ctx: %s", ctx.channel().localAddress()), cause);
     }
 
     private static void register(Channel out, String userId, String roomId) throws IOException {
@@ -103,6 +128,21 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
 
     private static <K, V> Map<K, V> map(Object... keyValues) {
         return MessageUtils.map(keyValues);
+    }
+    
+    private static class MyAtomicLong extends AtomicLong {
+        public boolean checkAndSet(LongPredicate p, long update) {
+            while (true) {
+                long cur = get();
+
+                if (p.test(cur)) {
+                    if (compareAndSet(cur, update))
+                        return true;
+                }
+                else
+                    return false;
+            }
+        }
     }
 
 }

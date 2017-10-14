@@ -1,12 +1,15 @@
 package com.mycompany.im.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 
 /**
  * Created by Administrator on 2017/6/5.
@@ -63,17 +66,11 @@ public class MessageUtils {
                         int read = 0;
                         while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
                         }
-                        if (type == 30000) {
-                            String jsonText = new String(bytes, 0, contentLength, UTF_8);
-                            try {
-                                Msg msg = new Gson().fromJson(jsonText, Msg.class);
-                                if (consumer != null) {
-                                    consumer.accept(msg);
-                                }
-                            } catch (Exception e) {
-                                if (eConsumer != null) {
-                                    eConsumer.accept(e);
-                                }
+                        try {
+                            handle(bytes, 0, contentLength, type, consumer);
+                        } catch (Exception e) {
+                            if (eConsumer != null) {
+                                eConsumer.accept(e);
                             }
                         }
                     }
@@ -122,11 +119,40 @@ public class MessageUtils {
     }
 
     public static class Msg {
+        private String messageId;
+        private long time;
+        private String timeText;
         @Deprecated
         private String userId, roomId, content;
         private String toUserId, toRoomId;
         private Map<String, Object> params;
 
+        public String getMessageId() {
+            return messageId;
+        }
+
+        public void setMessageId(String messageId) {
+            this.messageId = messageId;
+        }
+
+        public long getTime() {
+            return time;
+        }
+
+        public void setTime(long time) {
+            this.time = time;
+        }
+
+        public String getTimeText() {
+            return timeText;
+        }
+
+        public void setTimeText(String timeText) {
+            this.timeText = timeText;
+        }
+
+        
+        
         public String getUserId() {
             return userId;
         }
@@ -193,6 +219,71 @@ public class MessageUtils {
 
     private static String json(Object o) {
         return new Gson().toJson(o);
+    }
+    
+    static void handle(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) throws IOException, DataFormatException {
+        handle2(bytes, offset, contentLength, type, consumer);
+        /*
+        try(DataInputStream din = new DataInputStream(new ByteArrayInputStream(bytes, offset, contentLength))) {
+            boolean compressed = din.readBoolean();
+            byte[] contentBytes = new byte[bytes.length - 4];
+            int read = din.read(contentBytes);
+            if(compressed) {
+                byte[] uncopmpressed = decompress(contentBytes, 0, read);
+                handle2(uncopmpressed, 0, uncopmpressed.length, type, consumer);
+            } else{
+                handle2(contentBytes, 0, read, type, consumer);
+            }
+        }*/
+    }
+    
+    static void handle2(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) {
+        if (type == 30000) {
+            String jsonText = new String(bytes, offset, contentLength, UTF_8);
+            if(jsonText.matches("\\s*\\[.+")) {
+                try {
+                    Msg[] msgs = new Gson().fromJson(jsonText, Msg[].class);
+                    if (consumer != null) {
+                        for(Msg msg : msgs) {
+                            consumer.accept(msg);
+                        }
+                    }
+                } catch(JsonSyntaxException e) {
+                    throw new RuntimeException(jsonText, e);
+                }
+            } else if(jsonText.matches("\\s*\\{.+")) {
+                try {
+                    Msg msg = new Gson().fromJson(jsonText, Msg.class);
+                    if (consumer != null) {
+                        consumer.accept(msg);
+                    }
+                } catch(JsonSyntaxException e) {
+                    throw new RuntimeException(jsonText, e);
+                }
+            }
+        }
+    }
+    
+    private static byte[] decompress(byte[] data, int offset, int length) throws DataFormatException {
+        Inflater inflater = new Inflater();
+        ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
+        try {
+            inflater.setInput(data, offset, length);
+            byte[] buffer = new byte[1024];
+            while (!inflater.finished()) {
+                int count = inflater.inflate(buffer);
+                out.write(buffer, 0, count);
+            }
+            byte[] output = out.toByteArray();
+            return output;
+        } finally {
+            inflater.end();
+            try {
+                out.close();
+            } catch(IOException e) {
+                throw new Error("panic");
+            }
+        }
     }
 
 }
