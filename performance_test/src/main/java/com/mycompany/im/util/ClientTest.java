@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ClientTest {
     
-    static String DEFAULT_ADDRESS = "47.92.68.14:6000";
+    static String DEFAULT_ADDRESS = "localhost:6000";
 
     public static void main(String... args) throws InterruptedException {
         int clientCount = 1;
@@ -45,7 +45,7 @@ public class ClientTest {
         private static final String[] ROOM_IDS = new String[1];
         static {
             for(int i = 0; i < ROOM_IDS.length; i++) {
-                ROOM_IDS[i] = UUID.randomUUID().toString();
+                ROOM_IDS[i] = "roomId" + i;
             }
         }
 

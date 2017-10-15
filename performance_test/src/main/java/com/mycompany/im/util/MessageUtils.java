@@ -222,11 +222,9 @@ public class MessageUtils {
     }
     
     static void handle(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) throws IOException, DataFormatException {
-        handle2(bytes, offset, contentLength, type, consumer);
-        /*
         try(DataInputStream din = new DataInputStream(new ByteArrayInputStream(bytes, offset, contentLength))) {
             boolean compressed = din.readBoolean();
-            byte[] contentBytes = new byte[bytes.length - 4];
+            byte[] contentBytes = new byte[bytes.length - 1];
             int read = din.read(contentBytes);
             if(compressed) {
                 byte[] uncopmpressed = decompress(contentBytes, 0, read);
@@ -234,7 +232,7 @@ public class MessageUtils {
             } else{
                 handle2(contentBytes, 0, read, type, consumer);
             }
-        }*/
+        }
     }
     
     static void handle2(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) {
