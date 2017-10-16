@@ -22,14 +22,16 @@ public class MessageUtils {
      * 对当前{@link java.net.Socket}连接注册userId。该方法在每次连接后调用且仅调用一次
      * @param out
      * @param userId
+     * @param clientVersion 
      * @throws IOException
      *
      * @see Socket#getOutputStream()
      * @see java.io.DataOutputStream#DataOutputStream(java.io.OutputStream)
      */
-    public static void register(DataOutput out, String userId) throws IOException {
+    public static void register(DataOutput out, String userId, String clientVersion) throws IOException {
         Map<String, Object> params = map(
-                "userId", userId
+                "userId", userId,
+                "version", clientVersion
         );
         writeMsg(out, params, 0);
     }
@@ -222,42 +224,49 @@ public class MessageUtils {
     }
     
     static void handle(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) throws IOException, DataFormatException {
-        try(DataInputStream din = new DataInputStream(new ByteArrayInputStream(bytes, offset, contentLength))) {
-            boolean compressed = din.readBoolean();
-            byte[] contentBytes = new byte[bytes.length - 1];
-            int read = din.read(contentBytes);
-            if(compressed) {
-                byte[] uncopmpressed = decompress(contentBytes, 0, read);
-                handle2(uncopmpressed, 0, uncopmpressed.length, type, consumer);
-            } else{
-                handle2(contentBytes, 0, read, type, consumer);
-            }
+        switch (type) {
+            case 30000:
+                handle30000(bytes, 0, contentLength, type, consumer);
+                break;
+            case 30001:
+                try(DataInputStream din = new DataInputStream(new ByteArrayInputStream(bytes, offset, contentLength))) {
+                    boolean compressed = din.readBoolean();
+                    byte[] contentBytes = new byte[bytes.length - 1];
+                    int read = din.read(contentBytes);
+                    if(compressed) {
+                        byte[] uncopmpressed = decompress(contentBytes, 0, read);
+                        handle30000(uncopmpressed, 0, uncopmpressed.length, type, consumer);
+                    } else{
+                        handle30000(contentBytes, 0, read, type, consumer);
+                    }
+                }  
+                break;
+            default:
+                throw new RuntimeException("unknown type: " + type);
         }
     }
     
-    private static void handle2(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) {
-        if (type == 30000) {
-            String jsonText = new String(bytes, offset, contentLength, UTF_8);
-            if(jsonText.matches("\\s*\\[.+")) {
-                try {
-                    Msg[] msgs = new Gson().fromJson(jsonText, Msg[].class);
-                    if (consumer != null) {
-                        for(Msg msg : msgs) {
-                            consumer.accept(msg);
-                        }
-                    }
-                } catch(JsonSyntaxException e) {
-                    throw new RuntimeException(jsonText, e);
-                }
-            } else if(jsonText.matches("\\s*\\{.+")) {
-                try {
-                    Msg msg = new Gson().fromJson(jsonText, Msg.class);
-                    if (consumer != null) {
+    private static void handle30000(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) {
+        String jsonText = new String(bytes, offset, contentLength, UTF_8);
+        if(jsonText.matches("\\s*\\[.+")) {
+            try {
+                Msg[] msgs = new Gson().fromJson(jsonText, Msg[].class);
+                if (consumer != null) {
+                    for(Msg msg : msgs) {
                         consumer.accept(msg);
                     }
-                } catch(JsonSyntaxException e) {
-                    throw new RuntimeException(jsonText, e);
                 }
+            } catch(JsonSyntaxException e) {
+                throw new RuntimeException(jsonText, e);
+            }
+        } else if(jsonText.matches("\\s*\\{.+")) {
+            try {
+                Msg msg = new Gson().fromJson(jsonText, Msg.class);
+                if (consumer != null) {
+                    consumer.accept(msg);
+                }
+            } catch(JsonSyntaxException e) {
+                throw new RuntimeException(jsonText, e);
             }
         }
     }

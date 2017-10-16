@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ClientTest {
     
-    static String DEFAULT_ADDRESS = "47.92.68.14:6000";
+    static String DEFAULT_ADDRESS = "localhost:6000";
 
     public static void main(String... args) throws InterruptedException {
         int clientCount = 1;
@@ -87,7 +87,7 @@ public class ClientTest {
 
                 String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
 
-                MessageUtils.register(out, userId);
+                MessageUtils.register(out, userId, "0");
                 MessageUtils.enter(out, roomId);
                 out.flush();
 
