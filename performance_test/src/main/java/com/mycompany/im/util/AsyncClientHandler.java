@@ -76,23 +76,21 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
         
         buffer.release();
         
-        try {
-            MessageUtils.handle(
-                    bytes,
-                    0, 
-                    contentLength,
-                    type,
-                    m -> {
-                        //每2秒输出一次，避免高并发竞争log lock
-                        long currentTimeMillis = System.currentTimeMillis();
-                        boolean changed = atomicLong.checkAndSet(time -> currentTimeMillis - time > 2000L, currentTimeMillis);
-                        if(changed) {
-                            logger.info(m.getTimeText());
-                        }
-                    }
-            );
-        } catch (Exception e) {
-            logger.error(String.format("ctx: %s", ctx.channel().localAddress()), e);
+        //每1秒输出一次，避免高并发竞争CPU，lock等
+        long currentTimeMillis = System.currentTimeMillis();
+        boolean changed = atomicLong.checkAndSet(time -> currentTimeMillis - time > 1000L, currentTimeMillis);
+        if(changed) {
+            try {
+                MessageUtils.handle(
+                        bytes,
+                        0, 
+                        contentLength,
+                        type,
+                        m -> logger.info(m.getTimeText())
+                );
+            } catch (Exception e) {
+                logger.error(String.format("ctx: %s", ctx.channel().localAddress()), e);
+            }
         }
     }
 

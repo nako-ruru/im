@@ -11,15 +11,16 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ClientTest {
     
-    static String DEFAULT_ADDRESS = "localhost:6000";
+    static String DEFAULT_ADDRESS = "47.92.68.14:6000";
 
     public static void main(String... args) throws InterruptedException {
         int clientCount = 1;
+        long interval = 1000;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;
             threads[i] = new Thread(() -> {
-                new Client("userId" + finalI).start();
+                new Client("userId" + finalI, interval).start();
             });
             threads[i].start();
         }
@@ -50,9 +51,11 @@ public class ClientTest {
         }
 
         private final String userId;
+        private final long interval;
 
-        public Client(String userId) {
+        public Client(String userId, long interval) {
             this.userId = userId;
+            this.interval = interval;
         }
 
         public void start() {
@@ -88,13 +91,16 @@ public class ClientTest {
                 MessageUtils.enter(out, roomId);
                 out.flush();
 
-                boolean loop = true;
-                while(loop) {
-                    int level = random.nextInt(1, 100);
-                    String nickname = UUID.randomUUID().toString();
-                    writeRandomMessage(out, roomId, nickname, level);
+                if(interval > 0) {
+                    while(true) {
+                        int level = random.nextInt(1, 100);
+                        String nickname = UUID.randomUUID().toString();
+                        writeRandomMessage(out, roomId, nickname, level);
 
-                    Thread.sleep(random.nextLong(3000L));
+                        Thread.sleep(interval);
+                    }
+                } else {
+                    Thread.sleep(Integer.MAX_VALUE);
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();

@@ -235,7 +235,7 @@ public class MessageUtils {
         }
     }
     
-    static void handle2(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) {
+    private static void handle2(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) {
         if (type == 30000) {
             String jsonText = new String(bytes, offset, contentLength, UTF_8);
             if(jsonText.matches("\\s*\\[.+")) {
