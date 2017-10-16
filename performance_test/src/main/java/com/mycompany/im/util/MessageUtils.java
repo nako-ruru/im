@@ -61,6 +61,18 @@ public class MessageUtils {
             public void run() {
                 try {
                     while (true) {
+/*
+1. 以big endian方式读取4个字节，这4个字节表示接下来一个完整数据包的长度length。和原来方式一致
+2. 以big endian方式读取4个字节，这4个字节表示接下来一个完整数据包的类型type。和原来方式一致
+    如果type == 30000，
+    2.1接下来剩余length-4个字节以UTF-8解码为字符串，该字符串是一个完整json数据，对于json的处理方式与原来一致
+    如果type == 30001，
+    2.2 读取1个字节，该自己表示接下来的length - 5个字节是否是压缩数据compressed
+        如果compressed == 1
+        2.2.1 接下来剩余length-5个字节以zlib方式解压，解压后的数据以UTF-8解码为字符串，该字符串是一个完整json数据，对于json的处理方式与原来一致
+        如果compressed == 0
+        2.2.2 接下来剩余length-5个字节以UTF-8解码为字符串，该字符串是一个完整json数据，对于json的处理方式与原来一致
+*/
                         int length = in.readInt();
                         int type = in.readInt();
                         int contentLength = length - 4;
