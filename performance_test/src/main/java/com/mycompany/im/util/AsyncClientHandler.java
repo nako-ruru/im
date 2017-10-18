@@ -1,5 +1,6 @@
 package com.mycompany.im.util;
 
+import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -86,7 +87,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                         0, 
                         contentLength,
                         type,
-                        m -> logger.info(m.getTimeText())
+                        m -> logger.info("{}", ImmutableMap.of("messageId", m.getMessageId(), "timeText", m.getTimeText()))
                 );
             } catch (Exception e) {
                 logger.error(String.format("ctx: %s", ctx.channel().localAddress()), e);

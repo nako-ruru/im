@@ -15,17 +15,23 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Administrator on 2017/8/7.
  */
 public class AsyncClientTest {
 
+    private static final Logger logger = LoggerFactory.getLogger(AsyncClientTest.class);
+    
     public static void main(String[] args) throws Exception {
         int clientCount = getOrDefault(args, 0, Integer::parseInt, 1);
         int roomCount = getOrDefault(args, 1, Integer::parseInt, 1);
         String address = getOrDefault(args, 2, Function.identity(), ClientTest.DEFAULT_ADDRESS);
         long interval = getOrDefault(args, 3, Long::parseLong, 1000L);
+        
+        logger.info("clientCount:{}, roomCount:{}, address:{}, interval:{}", clientCount, roomCount, address, interval);
 
         String[] roomIds = allRoomIds(roomCount);
 

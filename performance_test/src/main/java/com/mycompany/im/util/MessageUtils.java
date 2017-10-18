@@ -164,8 +164,6 @@ public class MessageUtils {
         public void setTimeText(String timeText) {
             this.timeText = timeText;
         }
-
-        
         
         public String getUserId() {
             return userId;
@@ -241,7 +239,9 @@ public class MessageUtils {
                 handle30000(bytes, 0, contentLength, type, consumer);
                 break;
             case 30001:
-                try(DataInputStream din = new DataInputStream(new ByteArrayInputStream(bytes, offset, contentLength))) {
+                DataInputStream din = null;
+                try {
+                    din = new DataInputStream(new ByteArrayInputStream(bytes, offset, contentLength));
                     boolean compressed = din.readBoolean();
                     byte[] contentBytes = new byte[bytes.length - 1];
                     int read = din.read(contentBytes);
@@ -251,7 +251,11 @@ public class MessageUtils {
                     } else{
                         handle30000(contentBytes, 0, read, type, consumer);
                     }
-                }  
+                } finally{
+                    if(din != null) {
+                        din.close();
+                    }
+                }
                 break;
             default:
                 throw new RuntimeException("unknown type: " + type);

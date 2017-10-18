@@ -15,7 +15,7 @@ public class ClientTest {
 
     public static void main(String... args) throws InterruptedException {
         int clientCount = 1;
-        long interval = 1000;
+        long interval = -1;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;
