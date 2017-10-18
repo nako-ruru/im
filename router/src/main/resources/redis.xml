@@ -27,6 +27,32 @@
             <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
         </property>
     </bean>
+    
+    
+    
+    <!-- 注意此处注入的是JedisPoolConfig，说明SDR还依赖与Jedis -->
+    <bean id="pubSubPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+<!--        <property name="maxIdle" value="${redis.maxIdle}" />
+        <property name="maxWaitMillis" value="${redis.maxWait}" />
+        <property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
+    </bean>
+
+
+    <bean id="pubSubJedisConnectionFactory" class="com.mycompany.im.framework.spring.UniversalJedisConnectionFactory">
+        <property name="connectionFactoryDesc" value="${redis.pubsub}" />
+        <property name="poolConfig" ref="pubSubPoolConfig" />
+
+    </bean>  
+
+    <bean id="pubSubRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory" ref="pubSubJedisConnectionFactory" />
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+    </bean>
 
 </beans>
 

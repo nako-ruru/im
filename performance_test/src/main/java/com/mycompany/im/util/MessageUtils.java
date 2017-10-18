@@ -1,32 +1,37 @@
 package com.mycompany.im.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 
 /**
  * Created by Administrator on 2017/6/5.
  */
 public class MessageUtils {
 
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    static final Charset UTF_8 = Charset.forName("UTF-8");
 
     /**
      * 对当前{@link java.net.Socket}连接注册userId。该方法在每次连接后调用且仅调用一次
      * @param out
      * @param userId
+     * @param clientVersion 
      * @throws IOException
      *
      * @see Socket#getOutputStream()
      * @see java.io.DataOutputStream#DataOutputStream(java.io.OutputStream)
      */
-    public static void register(DataOutput out, String userId) throws IOException {
+    public static void register(DataOutput out, String userId, String clientVersion) throws IOException {
         Map<String, Object> params = map(
-                "userId", userId
+                "userId", userId,
+                "version", clientVersion
         );
         writeMsg(out, params, 0);
     }
@@ -40,7 +45,7 @@ public class MessageUtils {
     public static void enter(DataOutput out, String roomId) throws IOException {
         Map<String, Object> params = map(
                 "roomId", roomId
-                );
+        );
         writeMsg(out, params, 4);
     }
 
@@ -56,24 +61,30 @@ public class MessageUtils {
             public void run() {
                 try {
                     while (true) {
+/*
+1. 以big endian方式读取4个字节，这4个字节表示接下来一个完整数据包的长度length。和原来方式一致
+2. 以big endian方式读取4个字节，这4个字节表示接下来一个完整数据包的类型type。和原来方式一致
+    如果type == 30000，
+    2.1接下来剩余length-4个字节以UTF-8解码为字符串，该字符串是一个完整json数据，对于json的处理方式与原来一致
+    如果type == 30001，
+    2.2 读取1个字节，该自己表示接下来的length - 5个字节是否是压缩数据compressed
+        如果compressed == 1
+        2.2.1 接下来剩余length-5个字节以zlib方式解压，解压后的数据以UTF-8解码为字符串，该字符串是一个完整json数据，对于json的处理方式与原来一致
+        如果compressed == 0
+        2.2.2 接下来剩余length-5个字节以UTF-8解码为字符串，该字符串是一个完整json数据，对于json的处理方式与原来一致
+*/
                         int length = in.readInt();
                         int type = in.readInt();
-                        if (type == 30000) {
-                            int contentLength = length - 4;
-                            byte[] bytes = new byte[contentLength];
-                            int read = 0;
-                            while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
-                            }
-                            String jsonText = new String(bytes, 0, contentLength, UTF_8);
-                            try {
-                                Msg msg = new Gson().fromJson(jsonText, Msg.class);
-                                if (consumer != null) {
-                                    consumer.accept(msg);
-                                }
-                            } catch (Exception e) {
-                                if (eConsumer != null) {
-                                    eConsumer.accept(e);
-                                }
+                        int contentLength = length - 4;
+                        byte[] bytes = new byte[contentLength];
+                        int read = 0;
+                        while((read += in.read(bytes, read, contentLength - read)) < contentLength) {
+                        }
+                        try {
+                            handle(bytes, 0, contentLength, type, consumer);
+                        } catch (Exception e) {
+                            if (eConsumer != null) {
+                                eConsumer.accept(e);
                             }
                         }
                     }
@@ -122,11 +133,38 @@ public class MessageUtils {
     }
 
     public static class Msg {
+        private String messageId;
+        private long time;
+        private String timeText;
         @Deprecated
         private String userId, roomId, content;
         private String toUserId, toRoomId;
         private Map<String, Object> params;
 
+        public String getMessageId() {
+            return messageId;
+        }
+
+        public void setMessageId(String messageId) {
+            this.messageId = messageId;
+        }
+
+        public long getTime() {
+            return time;
+        }
+
+        public void setTime(long time) {
+            this.time = time;
+        }
+
+        public String getTimeText() {
+            return timeText;
+        }
+
+        public void setTimeText(String timeText) {
+            this.timeText = timeText;
+        }
+        
         public String getUserId() {
             return userId;
         }
@@ -183,7 +221,7 @@ public class MessageUtils {
         void accept(T t);
     }
 
-    private static <K, V> Map<K, V> map(Object... keyValues) {
+    static <K, V> Map<K, V> map(Object... keyValues) {
         Map map = new HashMap<>();
         for(int i = 0; i < keyValues.length / 2; i++) {
             map.put(keyValues[i * 2], keyValues[i * 2 + 1]);
@@ -193,6 +231,82 @@ public class MessageUtils {
 
     private static String json(Object o) {
         return new Gson().toJson(o);
+    }
+    
+    static void handle(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) throws IOException, DataFormatException {
+        switch (type) {
+            case 30000:
+                handle30000(bytes, 0, contentLength, type, consumer);
+                break;
+            case 30001:
+                DataInputStream din = null;
+                try {
+                    din = new DataInputStream(new ByteArrayInputStream(bytes, offset, contentLength));
+                    boolean compressed = din.readBoolean();
+                    byte[] contentBytes = new byte[bytes.length - 1];
+                    int read = din.read(contentBytes);
+                    if(compressed) {
+                        byte[] uncopmpressed = decompress(contentBytes, 0, read);
+                        handle30000(uncopmpressed, 0, uncopmpressed.length, type, consumer);
+                    } else{
+                        handle30000(contentBytes, 0, read, type, consumer);
+                    }
+                } finally{
+                    if(din != null) {
+                        din.close();
+                    }
+                }
+                break;
+            default:
+                throw new RuntimeException("unknown type: " + type);
+        }
+    }
+    
+    private static void handle30000(byte[] bytes, int offset, int contentLength, int type, Consumer<Msg> consumer) {
+        String jsonText = new String(bytes, offset, contentLength, UTF_8);
+        if(jsonText.matches("\\s*\\[.+")) {
+            try {
+                Msg[] msgs = new Gson().fromJson(jsonText, Msg[].class);
+                if (consumer != null) {
+                    for(Msg msg : msgs) {
+                        consumer.accept(msg);
+                    }
+                }
+            } catch(JsonSyntaxException e) {
+                throw new RuntimeException(jsonText, e);
+            }
+        } else if(jsonText.matches("\\s*\\{.+")) {
+            try {
+                Msg msg = new Gson().fromJson(jsonText, Msg.class);
+                if (consumer != null) {
+                    consumer.accept(msg);
+                }
+            } catch(JsonSyntaxException e) {
+                throw new RuntimeException(jsonText, e);
+            }
+        }
+    }
+    
+    private static byte[] decompress(byte[] data, int offset, int length) throws DataFormatException {
+        Inflater inflater = new Inflater();
+        ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
+        try {
+            inflater.setInput(data, offset, length);
+            byte[] buffer = new byte[1024];
+            while (!inflater.finished()) {
+                int count = inflater.inflate(buffer);
+                out.write(buffer, 0, count);
+            }
+            byte[] output = out.toByteArray();
+            return output;
+        } finally {
+            inflater.end();
+            try {
+                out.close();
+            } catch(IOException e) {
+                throw new Error("panic");
+            }
+        }
     }
 
 }

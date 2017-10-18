@@ -21,9 +21,9 @@ import java.util.function.Function;
 public class RouterPerformanceTest {
     
     public static void main(String... args) {
-        String routerHost = Utils.getOrDefault(args, 0, Function.identity(), "47.92.68.14:8080/router");
-        String roomId = Utils.getOrDefault(args, 0, Function.identity(), "500");
-        long intervalInMilli = Utils.getOrDefault(args, 1, Long::parseLong, 500L);
+        String routerHost = Utils.getOrDefault(args, 0, Function.identity(), "47.92.49.101:8080/router");
+        String roomId = Utils.getOrDefault(args, 1, Function.identity(), "roomId0");
+        long intervalInMilli = Utils.getOrDefault(args, 2, Long::parseLong, 1000L);
         
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(30);
         scheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -31,7 +31,7 @@ public class RouterPerformanceTest {
             try {
                 final String u = String.format("http://%s/send?toRoomId=%s&importance=0&content=%s",
                         routerHost, 
-                        URLEncoder.encode(roomId, "UTF-8"),
+                        Math.random() < 1 ? "world" : URLEncoder.encode(roomId, "UTF-8"),
                         URLEncoder.encode(KafkaFiles.CONTENT, "UTF-8")
                 );
                 httpCon = (HttpURLConnection) new URL(u).openConnection();

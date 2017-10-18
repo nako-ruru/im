@@ -30,7 +30,7 @@ import java.util.zip.Inflater;
 @Component
 public class PlainRecv {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(PlainRecv.class);
 
     private ComputeService computeService;
     @Resource(name = "plain.tcp.listen.port")
@@ -77,8 +77,9 @@ public class PlainRecv {
 
     private void handle(byte[] bytes, int offset, int length) {
         try {
-            bytes = decompress(bytes, offset, length);
-            RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(ByteBuffer.wrap(bytes));
+            MyByteArrayOutputStream out = decompress(bytes, offset, length);
+            ByteBuffer buffer = ByteBuffer.wrap(out.getByteArray(), 0, out.size());
+            RoomMsgToCompute.FromConnectorMessages fromConnectorMessages = RoomMsgToCompute.FromConnectorMessages.parseFrom(buffer);
             Collection<FromConnectorMessage> messages = fromConnectorMessages.getMessagesList().stream()
                     .flatMap(Stream::of)
                     .map(PlainRecv::newMessage)
@@ -107,20 +108,19 @@ public class PlainRecv {
         );
     }
 
-    public byte[] decompress(byte[] data, int offset, int length) throws DataFormatException {
+    private static MyByteArrayOutputStream decompress(byte[] data, int offset, int length) throws DataFormatException {
         Inflater inflater = new Inflater();
-        ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
+        MyByteArrayOutputStream out = new MyByteArrayOutputStream(data.length);
         try {
             inflater.setInput(data, offset, length);
             byte[] buffer = new byte[1024];
-            while (!inflater.finished()) {
+            while (!inflater.finished() && inflater.getRemaining() != 0) {
                 int count = inflater.inflate(buffer);
                 out.write(buffer, 0, count);
             }
-            byte[] output = out.toByteArray();
             logger.debug("Original: " + data.length);
-            logger.debug("Compressed: " + output.length);
-            return output;
+            logger.debug("Compressed: " + out.size());
+            return out;
         } finally {
             inflater.end();
             try {
@@ -128,6 +128,15 @@ public class PlainRecv {
             } catch(IOException e) {
                 logger.error("", e);
             }
+        }
+    }
+    
+    private static class MyByteArrayOutputStream extends ByteArrayOutputStream {
+        private MyByteArrayOutputStream(int length) {
+            super(length);
+        }
+        public synchronized byte[] getByteArray() {
+            return buf;
         }
     }
     

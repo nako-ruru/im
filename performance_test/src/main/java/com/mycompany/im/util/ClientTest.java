@@ -1,4 +1,5 @@
-import com.mycompany.im.connector.MessageUtils;
+package com.mycompany.im.util;
+
 
 import java.io.*;
 import java.net.Socket;
@@ -9,14 +10,17 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by Administrator on 2017/5/28.
  */
 public class ClientTest {
+    
+    static String DEFAULT_ADDRESS = "localhost:6000";
 
     public static void main(String... args) throws InterruptedException {
         int clientCount = 1;
+        long interval = -1;
         Thread[] threads = new Thread[clientCount];
         for(int i = 0; i < clientCount; i++) {
             int finalI = i;
             threads[i] = new Thread(() -> {
-                new Client("userId" + finalI).start();
+                new Client("userId" + finalI, interval).start();
             });
             threads[i].start();
         }
@@ -42,22 +46,33 @@ public class ClientTest {
         private static final String[] ROOM_IDS = new String[1];
         static {
             for(int i = 0; i < ROOM_IDS.length; i++) {
-                ROOM_IDS[i] = UUID.randomUUID().toString();
+                ROOM_IDS[i] = "roomId" + i;
             }
         }
 
         private final String userId;
+        private final long interval;
 
-        public Client(String userId) {
+        public Client(String userId, long interval) {
             this.userId = userId;
+            this.interval = interval;
         }
 
         public void start() {
             Socket socket;
             try {
-                String host = "localhost";
-//                String host = "47.92.98.23";
-                socket = new Socket(host, 6000);
+                String address = DEFAULT_ADDRESS;
+                int colonIndex = address.indexOf(":");
+                String host;
+                int port;
+                if(colonIndex >= 0) {
+                    host = address.substring(0, colonIndex);
+                    port = Integer.parseInt(address.substring(colonIndex + 1));
+                } else {
+                    host = address;
+                    port = 6000;
+                }
+                socket = new Socket(host, port);
 
                 ThreadLocalRandom random = ThreadLocalRandom.current();
 
@@ -72,17 +87,20 @@ public class ClientTest {
 
                 String roomId = ROOM_IDS[random.nextInt(ROOM_IDS.length)];
 
-                MessageUtils.register(out, userId);
+                MessageUtils.register(out, userId, "0");
                 MessageUtils.enter(out, roomId);
                 out.flush();
 
-                boolean loop = true;
-                while(loop) {
-                    int level = random.nextInt(1, 100);
-                    String nickname = UUID.randomUUID().toString();
-                    writeRandomMessage(out, roomId, nickname, level);
+                if(interval > 0) {
+                    while(true) {
+                        int level = random.nextInt(1, 100);
+                        String nickname = UUID.randomUUID().toString();
+                        writeRandomMessage(out, roomId, nickname, level);
 
-                    Thread.sleep(random.nextLong(3000L));
+                        Thread.sleep(interval);
+                    }
+                } else {
+                    Thread.sleep(Integer.MAX_VALUE);
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
