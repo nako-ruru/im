@@ -31,7 +31,7 @@ public class RouterPerformanceTest {
             try {
                 final String u = String.format("http://%s/send?toRoomId=%s&importance=0&content=%s",
                         routerHost, 
-                        Math.random() < 1 ? "world" : URLEncoder.encode(roomId, "UTF-8"),
+                        Math.random() < .1 ? "world" : URLEncoder.encode(roomId, "UTF-8"),
                         URLEncoder.encode(KafkaFiles.CONTENT, "UTF-8")
                 );
                 httpCon = (HttpURLConnection) new URL(u).openConnection();

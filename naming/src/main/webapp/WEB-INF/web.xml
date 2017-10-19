@@ -40,7 +40,8 @@
                 classpath:framework.xml,
                 classpath:mvc.xml,
                 classpath:config.xml,
-                classpath:redis.xml
+                classpath:redis.xml,
+                classpath:cache.xml
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

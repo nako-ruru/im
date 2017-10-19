@@ -34,11 +34,11 @@ public class MessageQuery {
     private final Striped<ReadWriteLock> striped = Striped.lazyWeakReadWriteLock(128);
 
     public List<MessageResult> findByRoomIdAndFromGreaterThan(MessageParameter parameter) {
-        ReadWriteLock lock = striped.get(parameter.getRoomId());
-
         if(parameter.getFrom() == 0) {
             return newEmptyMessages(parameter.getRoomId());
         }
+
+        ReadWriteLock lock = striped.get(parameter.getRoomId());
 
         CacheObject<List<Message>> cacheObject;
         try {
@@ -52,6 +52,7 @@ public class MessageQuery {
                 return newEmptyMessages(parameter.getRoomId());
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.error("", e);
             return newEmptyMessages(parameter.getRoomId());
         }
