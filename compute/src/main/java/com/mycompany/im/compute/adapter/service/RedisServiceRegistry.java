@@ -47,7 +47,8 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
         if(registryAddress != null) {
             Map map = ImmutableMap.of("registerTime", System.currentTimeMillis());
             final String value = new Gson().toJson(map);
-            logger.info("register: key: " + registryAddress + "; value: " + value);
+            Logger timerLogger = LoggerFactory.getLogger("timer");
+            timerLogger.info("register: key: " + registryAddress + "; value: " + value);
             redisTemplate.opsForHash().put("compute-servers", registryAddress, value);
         }
     }

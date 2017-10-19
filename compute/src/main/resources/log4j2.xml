@@ -19,6 +19,15 @@
             <AppenderRef ref="CONSOLE"/>
             <BurstFilter level="WARN" rate="160" maxBurst="1600"/>
         </Async>
+        
+        
+        <RollingRandomAccessFile name="TIMER" fileName="logs/compute.timer.txt" filePattern="logs/compute-%i.timer.txt">
+            <PatternLayout pattern="%d{MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
+            <SizeBasedTriggeringPolicy size="10 MB" />
+        </RollingRandomAccessFile>
+        <Async name="ASYNC">
+            <AppenderRef ref="TIMER"/>
+        </Async>
 
         <RollingRandomAccessFile name="ERROR_FILE" fileName="logs/compute.error.txt" filePattern="logs/compute-%d{yyyy-MM-dd}-%i.error.txt">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t] [%c{1.}] %m%n"/>
@@ -33,6 +42,10 @@
     </Appenders>
 
     <Loggers>
+        <logger name="timer" level="INFO" additivity="false">
+            <AppenderRef ref="TIMER"/>
+        </logger>
+        
         <logger name="com.mycompany.im.framework.spring" level="INFO" additivity="false">
             <AppenderRef ref="FILE"/>
             <AppenderRef ref="CONSOLE"/>
