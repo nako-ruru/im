@@ -84,6 +84,19 @@
             <version>1.7.24</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.auth0/java-jwt -->
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.github.fge/throwing-lambdas -->
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>throwing-lambdas</artifactId>
+            <version>0.5.0</version>
+        </dependency>
         
         <dependency>
             <groupId>org.apache.commons</groupId>

@@ -22,18 +22,27 @@ public class MessageUtils {
      * 对当前{@link java.net.Socket}连接注册userId。该方法在每次连接后调用且仅调用一次
      * @param out
      * @param userId
+     * @param token
      * @param clientVersion 
      * @throws IOException
      *
      * @see Socket#getOutputStream()
      * @see java.io.DataOutputStream#DataOutputStream(java.io.OutputStream)
      */
-    public static void register(DataOutput out, String userId, String clientVersion) throws IOException {
+    public static void register(DataOutput out, String userId, String token, String clientVersion) throws IOException {
         Map<String, Object> params = map(
                 "userId", userId,
-                "version", clientVersion
+                "version", clientVersion,
+                "token", token
         );
         writeMsg(out, params, 0);
+    }
+    
+    public static void refreshToken(DataOutput out, String token) throws IOException {
+        Map<String, Object> params = map(
+                "token", token
+        );
+        writeMsg(out, params, 10);
     }
 
     /**
@@ -117,7 +126,7 @@ public class MessageUtils {
         writeMsg(out, params, 1);
     }
 
-    static byte[] createMsg(Object o, int type) throws IOException {
+    private static byte[] createMsg(Object o, int type) throws IOException {
         String json = json(o);
         byte[] bytes = json.getBytes(UTF_8);
         ByteArrayOutputStream baos = new ByteArrayOutputStream(4 + 4 + bytes.length);
