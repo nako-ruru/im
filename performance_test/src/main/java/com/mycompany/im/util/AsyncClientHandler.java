@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,19 +59,10 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         String token = tokenManager.createToken(userId);
         register(ctx.channel(), userId, roomId, token);
-        
-        ScheduledFuture[] scheduledFutureHolder = new ScheduledFuture[1];
-        scheduledFutureHolder[0] = scheduledExecutorService.scheduleAtFixedRate(new ThrowingRunnable() {
-            int time = 0;
-            @Override
-            public void doRun() throws Throwable {
-                String token = tokenManager.createToken(userId);
-                refreshToken(ctx.channel(), token);
-                time++;
-                if(time >= 10) {
-                    scheduledFutureHolder[0].cancel(true);
-                }
-            }
+       
+        scheduledExecutorService.scheduleAtFixedRate((ThrowingRunnable) () -> {
+            String anotherToken = tokenManager.createToken(userId);
+            refreshToken(ctx.channel(), anotherToken);
         }, TimeUnit.MINUTES.toMillis(20), TimeUnit.MINUTES.toMillis(20), TimeUnit.MILLISECONDS);
         
         if(interval > 0) {
