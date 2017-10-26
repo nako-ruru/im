@@ -17,7 +17,11 @@ public static void pushCallback(DataInputStream in, Consumer<Msg> consumer, Cons
 ```
 - 向服务器登记用户id
 ```java
-public static void register(DataOutput out, String userId) throws IOException
+public static void register(DataOutput out, String userId, String token, String clientVersion) throws IOException
+```
+- 刷新token
+```java
+public static void refreshToken(DataOutput out, String token) throws IOException
 ```
 - 进入房间
 ```java
