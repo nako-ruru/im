@@ -45,6 +45,12 @@ public class MessageUtils {
         writeMsg(out, params, 10);
     }
 
+    public static void heartBeat(DataOutput out) throws IOException {
+        Map<String, Object> params = map(
+        );
+        writeMsg(out, params, 11);
+    }
+
     /**
      * 进入房间。
      * @param out

@@ -8,8 +8,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import java.io.DataOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -19,8 +21,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongPredicate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
     
@@ -64,7 +64,11 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
             String anotherToken = tokenManager.createToken(userId);
             refreshToken(ctx.channel(), anotherToken);
         }, TimeUnit.MINUTES.toMillis(20), TimeUnit.MINUTES.toMillis(20), TimeUnit.MILLISECONDS);
-        
+
+        scheduledExecutorService.scheduleAtFixedRate((ThrowingRunnable)() ->{
+            heartBeat(ctx.channel());
+        }, TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(1), TimeUnit.MILLISECONDS);
+
         if(interval > 0) {
             scheduledExecutorService.scheduleWithFixedDelay(() -> {
                 ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -127,6 +131,12 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
     private static void refreshToken(Channel out, String token) throws IOException {
         DataOutput dout = createDataOput(out);
         MessageUtils.refreshToken(dout, token);
+        out.flush();
+    }
+
+    private static void heartBeat(Channel out) throws IOException {
+        DataOutput dout = createDataOput(out);
+        MessageUtils.heartBeat(dout);
         out.flush();
     }
 
