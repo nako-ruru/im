@@ -23,6 +23,10 @@ public static void register(DataOutput out, String userId, String token, String 
 ```java
 public static void refreshToken(DataOutput out, String token) throws IOException
 ```
+- 发送一个心跳包
+```java
+public static void heartBeat(DataOutput out) throws IOException
+```
 - 进入房间
 ```java
 public static void enter(DataOutput out, String roomId) throws IOException
