@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Created by Administrator on 2017/8/28.
@@ -57,7 +58,7 @@ public class KafkaRecv {
     public void setSendService(SendService computeService) {
         this.sendService = computeService;
     }
-    @Resource(name = "kafka.brokers")
+    @Value("${kafka.brokers}")
     public void setBootstrapServers(String bootstrapServers) {
         this.bootstrapServers = bootstrapServers;
     }

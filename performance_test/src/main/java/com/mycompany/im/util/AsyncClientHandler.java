@@ -123,7 +123,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
 
     private static void register(Channel out, String userId, String roomId, String token) throws IOException {
         DataOutput dout = createDataOput(out);
-        MessageUtils.register(dout, userId, token, null);
+        MessageUtils.register(dout, userId, token, 100);
         MessageUtils.enter(dout, roomId);
         out.flush();
     }

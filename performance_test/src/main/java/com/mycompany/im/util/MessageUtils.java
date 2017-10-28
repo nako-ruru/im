@@ -29,11 +29,11 @@ public class MessageUtils {
      * @see Socket#getOutputStream()
      * @see java.io.DataOutputStream#DataOutputStream(java.io.OutputStream)
      */
-    public static void register(DataOutput out, String userId, String token, String clientVersion) throws IOException {
+    public static void register(DataOutput out, String userId, String token, int clientVersion) throws IOException {
         Map<String, Object> params = map(
-                "userId", userId,
-                "version", clientVersion,
-                "token", token
+                "userId",                   userId,
+                "clientToConnectorVersion", clientVersion,
+                "token",                    token
         );
         writeMsg(out, params, 0);
     }
@@ -123,9 +123,9 @@ public class MessageUtils {
      */
     public static void chat(DataOutput out, String content, String nickname, int level) throws IOException {
         Map<String, Object> params = map(
-                "content", content,
+                "content",  content,
                 "nickname", nickname,
-                "level", level
+                "level",    level
         );
         writeMsg(out, params, 1);
     }

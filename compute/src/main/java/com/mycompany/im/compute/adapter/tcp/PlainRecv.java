@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Created by Administrator on 2017/9/23.
@@ -33,7 +34,7 @@ public class PlainRecv {
     private static final Logger logger = LoggerFactory.getLogger(PlainRecv.class);
 
     private ComputeService computeService;
-    @Resource(name = "plain.tcp.listen.port")
+    @Value("${plain.tcp.listen.port}")
     private int listenPort;
 
     public void start() {

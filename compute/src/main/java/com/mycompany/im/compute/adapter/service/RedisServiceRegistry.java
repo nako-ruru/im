@@ -21,6 +21,7 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  *
@@ -31,7 +32,7 @@ public class RedisServiceRegistry implements ServiceRegistry, ApplicationListene
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     
-    @Resource(name = "plain.tcp.listen.port")
+    @Value("${plain.tcp.listen.port}")
     private int listenPort;
     @Resource(name = "registryRedisTemplate")
     private StringRedisTemplate redisTemplate;

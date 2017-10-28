@@ -16,8 +16,4 @@
         </property>
     </bean>
 
-    <bean id="kafka.brokers" class="java.lang.String">
-        <constructor-arg value="${kafka.brokers}"/>
-    </bean>
-
 </beans>
