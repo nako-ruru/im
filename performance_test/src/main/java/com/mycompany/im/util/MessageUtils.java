@@ -116,15 +116,13 @@ public class MessageUtils {
     /**
      * 普通聊天
      * @param out
-     * @param roomId
      * @param content
      * @param nickname
      * @param level
      * @throws IOException
      */
-    public static void chat(DataOutput out, @Deprecated String roomId, String content, String nickname, int level) throws IOException {
+    public static void chat(DataOutput out, String content, String nickname, int level) throws IOException {
         Map<String, Object> params = map(
-                "roomId", roomId,
                 "content", content,
                 "nickname", nickname,
                 "level", level

@@ -77,7 +77,7 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
                 String content = WORDS[random.nextInt(WORDS.length)];
 
                 try {
-                    chat(ctx.channel(), roomId, content, nickname, level);
+                    chat(ctx.channel(), content, nickname, level);
                 } catch (IOException e) {
                     logger.error(String.format("ctx: %s", ctx.channel().localAddress()), e);
                 }
@@ -140,9 +140,9 @@ public class AsyncClientHandler extends ChannelInboundHandlerAdapter {
         out.flush();
     }
 
-    private static void chat(Channel out, String roomId, String content, String nickname, int level) throws IOException {
+    private static void chat(Channel out, String content, String nickname, int level) throws IOException {
         DataOutput dout = createDataOput(out);
-        MessageUtils.chat(dout, roomId, content, nickname, level);
+        MessageUtils.chat(dout, content, nickname, level);
         out.flush();
     }
 

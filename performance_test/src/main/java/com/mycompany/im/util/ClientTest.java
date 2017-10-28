@@ -95,7 +95,7 @@ public class ClientTest {
                     while(true) {
                         int level = random.nextInt(1, 100);
                         String nickname = UUID.randomUUID().toString();
-                        writeRandomMessage(out, roomId, nickname, level);
+                        writeRandomMessage(out, nickname, level);
 
                         Thread.sleep(interval);
                     }
@@ -107,14 +107,14 @@ public class ClientTest {
             }
         }
 
-        private static void writeRandomMessage(DataOutput out, String roomId, String nickname, int level) throws IOException {
+        private static void writeRandomMessage(DataOutput out, String nickname, int level) throws IOException {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             int[] availableTypes = {1};
             int type = availableTypes[random.nextInt(availableTypes.length)];
             switch (type) {
                 case 1:
                     String content = WORDS[random.nextInt(WORDS.length)];
-                    MessageUtils.chat(out, roomId, content, nickname, level);
+                    MessageUtils.chat(out, content, nickname, level);
                     break;
                 default:
                     break;
