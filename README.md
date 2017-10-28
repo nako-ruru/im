@@ -7,7 +7,7 @@
 > 1. 向服务器告知进入房间id
 > 1. 接着就是随意聊天。
 
-java/android代码可参考[ClientTest.java](https://github.com/nako-ruru/im/blob/master/connector/src/test/java/ClientTest.java "ClientTest.java")
+java/android代码可参考[ClientTest.java](https://github.com/nako-ruru/im/blob/master/performance_test/src/main/java/com/mycompany/im/util/ClientTest.java "ClientTest.java")
 
 同时提取了比较方便的[MessageUtils.java](https://github.com/nako-ruru/im/blob/master/performance_test/src/main/java/com/mycompany/im/util/MessageUtils.java "MessageUtils.java")供java/android开发者使用
 其中
@@ -22,6 +22,10 @@ public static void register(DataOutput out, String userId, String token, String 
 - 刷新token
 ```java
 public static void refreshToken(DataOutput out, String token) throws IOException
+```
+- 发送一个心跳包
+```java
+public static void heartBeat(DataOutput out) throws IOException
 ```
 - 进入房间
 ```java
